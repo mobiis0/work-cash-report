@@ -1,0 +1,18 @@
+.report-history{position:relative;display:inline-block;margin-top:10px;color:#536176;font-size:14px;line-height:1.4;max-width:100%}
+.report-history summary{display:flex;align-items:center;gap:9px;list-style:none;cursor:pointer;border:1px solid #d7e0eb;border-radius:8px;padding:9px 12px;background:#f8fafc;user-select:none}
+.report-history summary::-webkit-details-marker{display:none}
+.report-history summary:hover{border-color:#7293bd;background:#eef4fa}
+.report-history summary:focus-visible,.report-history-option:focus-visible{outline:3px solid #7da6db;outline-offset:2px}
+.report-history-badge{font-size:11px;color:#245899;background:#e7eef8;border-radius:4px;padding:3px 6px;white-space:nowrap}
+.report-history-arrow{margin-left:4px;color:#476689;transition:transform .15s}
+.report-history[open] .report-history-arrow{transform:rotate(180deg)}
+.report-history-list{position:absolute;z-index:30;top:calc(100% + 6px);left:0;min-width:100%;width:max-content;max-width:min(400px,calc(100vw - 48px));max-height:320px;overflow-y:auto;border:1px solid #d7e0eb;border-radius:10px;background:white;box-shadow:0 8px 28px #1c355921;padding:5px}
+.report-history-option{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;border:0;border-radius:6px;background:white;color:#31415b;padding:12px 10px;text-align:left;cursor:pointer;font:inherit}
+.report-history-option small{font-size:11px;color:#79869a;white-space:nowrap}
+.report-history-option:hover{background:#f0f5fb}
+.report-history-option[aria-current=true]{color:#245899;font-weight:700;background:#eaf1fb}
+.report-history-status{margin:4px 0 0;padding:8px 10px;border-top:1px solid #e8edf3;font-size:12px;color:#607087;max-width:300px;white-space:normal}
+.report-history-status:empty{display:none}
+.report-history:not([open])>.report-history-list,.report-history:not([open])>.report-history-status{margin:4px 0 0;padding:8px 10px;border-top:1px solid #e8edf3;font-size:12px;color:#607087;max-width:300px;white-space:normal}
+@media(max-width:650px){.report-history{font-size:12px}.report-history summary{gap:6px;padding:8px}.report-history-list{max-width:calc(100vw - 44px)}.report-history-option{gap:8px;padding:11px 8px}}
+@media print{.report-history summary{border:0;padding:0;background:none}.report-history-arrow,.report-history-badge,.report-history-list,.report-history-status{margin:4px 0 0;padding:8px 10px;border-top:1px solid #e8edf3;font-size:12px;color:#607087;max-width:300px;white-space:normal}}
