@@ -73,7 +73,8 @@ export async function generateWorkbook(model,source,inputs){
  function set(address,value,formula){const c=cell(address);for(const e of Array.from(c.children))if(['f','v','is'].includes(e.localName))c.removeChild(e);c.removeAttribute('t');if(formula){child(doc,c,S,'f').textContent=formula.replace(/^=/,'');}if(typeof value==='string'){if(formula){c.setAttribute('t','str');child(doc,c,S,'v').textContent=value;}else{c.setAttribute('t','inlineStr');const t=child(doc,child(doc,c,S,'is'),S,'t');t.setAttributeNS(XML,'xml:space','preserve');t.textContent=value;}}else if(typeof value==='boolean'){c.setAttribute('t','b');child(doc,c,S,'v').textContent=value?'1':'0';}else if(value!==null){if(!Number.isFinite(value))throw Error(`계산할 수 없는 금액입니다: ${address}`);child(doc,c,S,'v').textContent=String(value);}values.set(address,value);}
  const number=address=>{if(values.has(address)){const v=values.get(address);return typeof v==='number'?v:0;}const v=source.value(address);return typeof v==='number'?v:0;};
  const sum=(...addresses)=>addresses.reduce((total,address)=>total+number(address),0);
- const prev=(to,from)=>set(to,source.value(from),`=${ref}${from}`);
+ // Carry the prior week's cached amount as a fixed number, not a cross-sheet formula.
+ const prev=(to,from)=>set(to,source.value(from));
  set('B2',`${displayDate(dates.start)} ~ ${displayDate(dates.end)}`);
  for(let r=6;r<=23;r++){prev(`E${r}`,`H${r}`);set(`F${r}`,null);set(`G${r}`,null);set(`H${r}`,number(`E${r}`),`=E${r}+F${r}-G${r}`);}
  for(let r=24;r<=31;r++)prev(`E${r}`,`H${r}`);
@@ -97,6 +98,15 @@ export async function generateWorkbook(model,source,inputs){
  set('F48',sum('F45','F46','F47'),'=IF(COUNT(F45:F47)<3,"",SUM(F45:F47))');
  for(let r=45;r<=48;r++)set(`G${r}`,number(`F${r}`)-number(`E${r}`),`=IF(F${r}="","",F${r}-E${r})`);
  set('E51',Math.abs(number('E48')-number('F40'))<.01,'=ABS(E48-F40)<0.01');set('F51',Math.abs(number('F48')-number('G40'))<.01,'=IF(F48="","",ABS(F48-G40)<0.01)');set('G51',Math.abs(number('H40')-number('G48'))<.01,'=IF(G48="","",ABS(H40-G48)<0.01)');
+ // The copied worksheet may contain other formulas pointing to an older weekly tab.
+ // Freeze those inherited links at their cached values, while retaining formulas
+ // that calculate within the new week as the user fills in transactions.
+ for(const c of all(doc,'c')){
+  const f=direct(c,'f');
+  if(!f||!/(?:'[^']+'|[A-Za-z0-9_() -]+)!/.test(f.textContent??''))continue;
+  c.removeChild(f);
+  // Existing cached <v> stays in place; no prior worksheet is needed to open this tab.
+ }
  // Validate all carried balances before changing the package structure.
  const carried=[...Array.from({length:26},(_,i)=>[`E${i+6}`,`H${i+6}`]),...Array.from({length:5},(_,i)=>[`F${i+35}`,`G${i+35}`]),['F40','G40'],...Array.from({length:4},(_,i)=>[`E${i+45}`,`F${i+45}`])];
  for(const [to,from] of carried)if(Math.abs(number(to)-source.value(from))>.01)throw Error(`전주 금액을 확인할 수 없습니다 (${to}).`);
