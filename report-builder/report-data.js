@@ -117,24 +117,39 @@ export async function graphHistory(model,name,report,summary,warnings){
   const foreign=labels.get('외화'),stocks=labels.get('주식'),cash=labels.get('원화'),assets=labels.get('총계');
   if(foreign&&stocks&&cash&&assets){
    const dateLabel=labels.get('날짜'),dateRow=dateLabel&&dateLabel<foreign?dateLabel:foreign-6,max=Math.max(...[...sh.cells.keys()].filter(x=>new RegExp(`^[A-Z]+${dateRow}$`).test(x)).map(x=>columnNumber(x.replace(/\d+$/,''))));
-   const seen=new Set();let duplicate=0,mismatch=0;
+   const seen=new Set();let duplicate=0,mismatch=0,incomplete=0;
    for(let c=4;c<=max;c++){const col=colName(c),date=num(v(`${col}${dateRow}`));if(date===null||date<30000||date>100000)continue;
     const d=dateFromSerial(date);if(d>report.end)continue;
     const point={date:d,cash:num(v(`${col}${cash}`)),foreign:num(v(`${col}${foreign}`)),stocks:num(v(`${col}${stocks}`)),assets:num(v(`${col}${assets}`)),source:`${name}!${col}${dateRow}:${col}${assets}`};
-    if(categories.some(k=>point[k]===null))continue;
+    if(categories.some(k=>point[k]===null)){incomplete++;continue;}
     if(seen.has(d)){duplicate++;continue;}
     if(Math.abs(point.cash+point.foreign+point.stocks-point.assets)>1){mismatch++;continue;}
     seen.add(d);history.push(point);
    }
    if(duplicate)warnings.push(`그래프에 날짜 중복 ${duplicate}개가 있어 중복 열을 제외했습니다.`);
    if(mismatch)warnings.push(`그래프의 구성금액과 총계가 불일치하는 ${mismatch}개 열을 제외했습니다.`);
+   if(incomplete)warnings.push(`그래프의 금액이 누락된 ${incomplete}개 열을 제외했습니다.`);
   }else warnings.push('그래프의 외화·주식·원화·총계 데이터 행을 찾지 못했습니다.');
  }else warnings.push('그래프 시트가 없어 이전주와 금주 두 시점만 표시합니다.');
  history.sort((a,b)=>a.date.localeCompare(b.date));
  const previousDate=new Date(Date.parse(report.start+'T00:00:00Z')-86400000).toISOString().slice(0,10);
  if(!history.some(p=>p.date===previousDate))history.push({date:previousDate,...Object.fromEntries(summary.map(s=>[s.key,s.previous])),source:`${report.name}!E45:E48`});
  const current={date:report.end,...Object.fromEntries(summary.map(s=>[s.key,s.current])),source:`${report.name}!F45:F48`};
- const i=history.findIndex(p=>p.date===report.end);if(i>=0)history[i]=current;else history.push(current);
+ const i=history.findIndex(p=>p.date===report.end);if(i>=0){if(categories.some(k=>Math.abs(history[i][k]-current[k])>1))warnings.push('그래프의 금주 금액이 주간표와 달라 주간표의 최신 금액으로 갱신했습니다.');history[i]=current;}else history.push(current);
+ return historyForPeriod(history,report.end,3);
+}
+// Keep the original three-year series (including undated columns), but use
+// weekly won amounts for the report end instead of stale million-won cells.
+export function updateThreeYearTotals(points,report,summary,warnings){
+ if(!points.length)return [];
+ const current=summary.find(s=>s.key==='assets')?.current;
+ if(num(current)===null)throw Error('3년 총계 그래프에 반영할 금주 자산 총계를 확인하세요.');
+ const matches=points.filter(p=>p.date===report.end&&p.exactDate);
+ // Source totals are rounded to millions; a half-million difference is normal.
+ if(matches.some(p=>Math.abs(p.assets-current)>500001))warnings.push('3년 총계 그래프의 금주 금액이 주간표와 달라 주간표의 최신 금액으로 갱신했습니다.');
+ if(matches.length>1)warnings.push(`3년 총계 그래프의 금주 날짜 중복 ${matches.length-1}개를 정리했습니다.`);
+ const history=points.filter(p=>!(p.date===report.end&&p.exactDate));
+ history.push({date:report.end,label:report.end,exactDate:true,assets:current,source:`${report.name}!F48`});
  return historyForPeriod(history,report.end,3);
 }
 export async function buildReport(model,source,{dailySheet='',graphSheet='',fileName=''}={}){
@@ -147,7 +162,8 @@ export async function buildReport(model,source,{dailySheet='',graphSheet='',file
  const summary=[45,46,47,48].map((r,i)=>({key:categories[i],label:['현금','외화','주식','자산 총계'][i],previous:number(v(`E${r}`)),current:number(v(`F${r}`)),change:number(v(`G${r}`))}));
  const subtotal=[24,25,26,30,31].map(r=>({label:r===24?'원화 소계':r===25?'유로 소계':r===26?'파운드 소계':r===30?'외화 합계 (원화 환산)':'현금·외화 합계',previous:number(v(`E${r}`)),in:r<=26?number(v(`F${r}`)):null,out:r<=26?number(v(`G${r}`)):null,current:number(v(`H${r}`)),currency:r===25?'EUR':r===26?'GBP':'KRW',key:r===24?'cash':r===30?'foreign':r===31?'cashForeign':null}));
  const history=await graphHistory(model,graphSheet,source,summary,warnings);
- const totalHistory=graphSheet?parseThreeYearTotals(await readWorkbookSheet(model,graphSheet),source.end):[];
+ const originalTotals=graphSheet?parseThreeYearTotals(await readWorkbookSheet(model,graphSheet),source.end):[];
+ const totalHistory=updateThreeYearTotals(originalTotals,source,summary,warnings);
  if(Math.abs(summary[0].current+summary[1].current+summary[2].current-summary[3].current)>1)throw Error('자금 총액비교 현황의 구성금액과 자산 총계가 일치하지 않습니다.');
  return {version:1,title:'주간 자금현황',company:'모비스',sheet:source.name,start:source.start,end:source.end,updatedAt:new Date().toISOString(),source:{weekly:source.name,daily:dailySheet,graph:graphSheet,fileName},rows,subtotal,stocks,stockTotal:{previous:number(v('F39')),current:number(v('G39')),change:number(v('H39'))},summary,history,totalHistory,dailyLedger,warnings:[...new Set(warnings)],privacy:'계좌번호는 끝 4자리만 표시합니다. 일일내역의 거래처와 내용은 원문대로 표시합니다.'};
 }
@@ -158,4 +174,5 @@ export function validateReport(report){
  for(const s of report.summary)for(const k of ['previous','current','change'])if(num(s[k])===null)throw Error('총계 금액이 올바르지 않습니다.');
  return report;
 }
+
 

@@ -1,4 +1,4 @@
-import {inspectWorkbook,buildReport,validateReport} from './report-data.js?v=20261002-8';
+import {inspectWorkbook,buildReport,validateReport} from './report-data.js?v=20261008-2';
 import {renderReport} from './viewer.js?v=20261002-9';
 const $=id=>document.getElementById(id);
 let model=null,fileName='',report=null,resultURL=null,siteHTML='',cleanup=null,busy=false,loadId=0;
@@ -31,5 +31,6 @@ $('build').addEventListener('click',generate);
 $('copy').addEventListener('click',async()=>{if(!siteHTML)return;try{await navigator.clipboard.writeText(siteHTML);status('게시용 내용을 복사했습니다. GitHub에서 기존 내용을 전체 선택해 교체한 뒤 Commit changes로 저장하세요.','success');}catch{$('site-content').closest('details').open=true;$('site-content').focus();$('site-content').select();status('게시용 내용을 선택했습니다. Ctrl+C로 복사하세요.');}});
 window.addEventListener('beforeunload',()=>{if(resultURL)URL.revokeObjectURL(resultURL);cleanup?.();});
 if(document.modelContext?.registerTool){document.modelContext.registerTool({name:'build_cash_report_site',title:'주간자금일보 사이트 생성',description:'페이지에 선택된 엑셀에서 주간 표, 주요 거래 설명, 추이 그래프가 포함된 독립 보고서 사이트와 미리보기를 생성합니다. GitHub 게시는 하지 않습니다.',inputSchema:{type:'object',properties:{weekly:{type:'string'},daily:{type:'string'},graph:{type:'string'}},additionalProperties:false},execute:async input=>{if(!model)throw Error('먼저 엑셀 파일을 선택하세요.');if(input.weekly){if(!model.reports.some(r=>r.name===input.weekly))throw Error('주간 시트를 확인하세요.');$('weekly').value=input.weekly;syncSources();}for(const key of ['daily','graph'])if(input[key]!==undefined){if(input[key]&&!model.sheetNames.includes(input[key]))throw Error('시트 이름을 확인하세요.');$(key).value=input[key];}await generate();if(!report)throw Error($('status').textContent);return{sheet:report.sheet,start:report.start,end:report.end,accounts:report.rows.length,dailyDays:report.dailyLedger.days.length,dailyEntries:report.dailyLedger.days.reduce((n,d)=>n+d.entries.in.length+d.entries.out.length,0),warnings:report.warnings,generatedHTML:true};}});}
+
 
 
