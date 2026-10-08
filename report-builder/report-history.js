@@ -1,7 +1,7 @@
 export function mountReportHistory(root, latestReport, render) {
   const idOf = data => `${data.start}_${data.end}`;
   const period = data => `${data.start.replaceAll('-', '.')} ~ ${data.end.replaceAll('-', '.')}`;
-  const currentId = idOf(latestReport);
+  let currentId = idOf(latestReport);
   const cache = new Map([[currentId, latestReport]]);
   let entries = [], cleanup, selectedId = currentId, selection = 0;
   const menu = document.createElement('details');
@@ -104,11 +104,13 @@ export function mountReportHistory(root, latestReport, render) {
     const unique = new Map(entries.map(entry => [entry.id, entry]));
     for (const entry of index.reports) if (validEntry(entry) && !unique.has(entry.id)) unique.set(entry.id, entry);
     entries = [...unique.values()].sort((a, b) => b.end.localeCompare(a.end) || b.start.localeCompare(a.start));
+    currentId = entries[0].id;
+    badge.textContent = selectedId === currentId ? '최신' : '이전 보고서';
     refreshList();
     message.textContent = entries.length === 1 ? '이전 보고서는 다음 보고서 게시 후 여기에 쌓입니다.' : '';
-    const target = entries.find(entry => entry.id === requested);
-    if (target && target.id !== currentId) select(target, false);
-    else if (requested && !target) message.textContent = '해당 보고기간이 없어 최신 보고서를 표시합니다.';
+    const target = entries.find(entry => entry.id === requested) || entries[0];
+    if (selection === 0 && target.id !== selectedId) select(target, false);
+    else if (requested && !entries.some(entry => entry.id === requested)) message.textContent = '해당 보고기간이 없어 최신 보고서를 표시합니다.';
   }).catch(() => {
     message.textContent = '이전 보고서 목록을 불러오지 못했습니다. 최신 보고서는 그대로 확인할 수 있습니다.';
   });
@@ -121,3 +123,4 @@ export function mountReportHistory(root, latestReport, render) {
   });
   return () => cleanup?.();
 }
+
