@@ -1,9 +1,14 @@
 export function mountReportHistory(root, latestReport, render) {
   const idOf = data => `${data.start}_${data.end}`;
   const period = data => `${data.start.replaceAll('-', '.')} ~ ${data.end.replaceAll('-', '.')}`;
-  let currentId = idOf(latestReport);
+  const validEntry = entry => entry && /^\d{4}-\d{2}-\d{2}$/.test(entry.start) &&
+    /^\d{4}-\d{2}-\d{2}$/.test(entry.end) && entry.start <= entry.end &&
+    entry.id === idOf(entry) && entry.path === `archive/${entry.id}.json`;
+  let currentId = idOf(latestReport), selectedId = currentId;
+  let entries = [{id: currentId, start: latestReport.start, end: latestReport.end,
+    updatedAt: latestReport.updatedAt, path: `archive/${currentId}.json`}];
   const cache = new Map([[currentId, latestReport]]);
-  let entries = [], cleanup, selectedId = currentId, selection = 0;
+  let cleanup, selection = 0, refreshing = false, disposed = false, verified = false;
   const menu = document.createElement('details');
   menu.className = 'report-history';
   const heading = document.createElement('summary');
@@ -24,12 +29,12 @@ export function mountReportHistory(root, latestReport, render) {
   message.setAttribute('role', 'status');
   menu.append(heading, list);
   const localBase = new URL('../', location.href);
-  // Workflow commits do not trigger another Pages build. Read the small archive
-  // index from the repository so a new publication is listed immediately.
   const remoteBase = new URL('https://raw.githubusercontent.com/mobiis0/work-cash-report/main/reports/');
   const base = location.hostname === 'mobiis0.github.io' ? remoteBase : localBase;
-  const requested = new URL(location.href).searchParams.get('period');
-
+  const requestedPeriod = () => new URL(location.href).searchParams.get('period');
+  function updateBadge() {
+    badge.textContent = !verified ? '최신 확인 중' : selectedId === currentId ? '최신' : '이전 보고서';
+  }
   function refreshList() {
     list.replaceChildren();
     for (const entry of entries) {
@@ -53,7 +58,7 @@ export function mountReportHistory(root, latestReport, render) {
     cleanup = render(root, data);
     selectedId = idOf(data);
     title.textContent = period(data);
-    badge.textContent = selectedId === currentId ? '최신' : '이전 보고서';
+    updateBadge();
     document.title = `모비스 주간자금현황 ${data.end}`;
     const oldPeriod = root.querySelector('.report-heading > div > p');
     if (oldPeriod) oldPeriod.replaceWith(menu);
@@ -61,22 +66,27 @@ export function mountReportHistory(root, latestReport, render) {
     refreshList();
   }
   async function readJSON(path) {
-    const response = await fetch(new URL(path, base), {cache: 'no-store'});
-    if (!response.ok) throw new Error('보고서를 불러오지 못했습니다.');
-    return response.json();
+    const url = new URL(path, base);
+    // no-store bypasses browser storage; a unique URL also avoids stale CDN responses.
+    url.searchParams.set('_fresh', `${Date.now()}-${++readJSON.sequence}`);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    try {
+      const response = await fetch(url, {cache: 'no-store', signal: controller.signal});
+      if (!response.ok) throw new Error('보고서를 불러오지 못했습니다.');
+      return await response.json();
+    } finally { clearTimeout(timeout); }
   }
-  function validEntry(entry) {
-    return entry && /^\d{4}-\d{2}-\d{2}$/.test(entry.start) &&
-      /^\d{4}-\d{2}-\d{2}$/.test(entry.end) && entry.id === idOf(entry) &&
-      entry.path === `archive/${entry.id}.json`;
-  }
-  async function select(entry, updateURL = true) {
+  readJSON.sequence = 0;
+  async function select(entry, updateURL = true, force = false) {
     const request = ++selection;
     message.textContent = '보고서를 불러오는 중입니다.';
     try {
-      const data = cache.get(entry.id) || await readJSON(entry.path);
-      if (request !== selection) return;
-      if (idOf(data) !== entry.id || !Array.isArray(data.rows) || !Array.isArray(data.summary)) throw new Error('보고기간을 확인할 수 없습니다.');
+      const cached = cache.get(entry.id);
+      const data = !force && cached && cached.updatedAt === entry.updatedAt ? cached : await readJSON(entry.path);
+      if (disposed || request !== selection) return false;
+      if (idOf(data) !== entry.id || !Array.isArray(data.rows) || !Array.isArray(data.summary))
+        throw new Error('보고기간을 확인할 수 없습니다.');
       cache.set(entry.id, data);
       show(data);
       message.textContent = '';
@@ -86,41 +96,91 @@ export function mountReportHistory(root, latestReport, render) {
         if (entry.id === currentId) url.searchParams.delete('period');
         else url.searchParams.set('period', entry.id);
         history.pushState(null, '', url);
+        heading.focus();
       }
-      heading.focus();
+      return true;
     } catch {
-      if (request === selection) message.textContent = '이전 보고서를 불러오지 못했습니다. 다시 선택해 주세요.';
+      if (!disposed && request === selection) {
+        message.textContent = '보고서를 불러오지 못했습니다. 연결이 복구되면 자동으로 다시 확인합니다.';
+        badge.textContent = '갱신 확인 필요';
+      }
+      return false;
     }
   }
-  entries = [{id: currentId, start: latestReport.start, end: latestReport.end}];
-  show(latestReport);
-  message.textContent = '이전 보고서 목록을 불러오는 중입니다.';
-  if (location.protocol === 'file:') {
-    message.textContent = '이전 보고서는 게시된 사이트에서 확인할 수 있습니다.';
-    return cleanup;
+  async function refreshLatest() {
+    if (disposed || refreshing || document.visibilityState === 'hidden') return;
+    refreshing = true;
+    const selectionAtStart = selection;
+    try {
+      const index = await readJSON('history.json');
+      if (disposed) return;
+      if (!Array.isArray(index.reports) || !index.reports.length || !index.reports.every(validEntry))
+        throw new Error('목록이 없습니다.');
+      const unique = new Map(index.reports.map(entry => [entry.id, entry]));
+      // The new HTML can arrive just before the archive workflow completes.
+      if (!unique.has(idOf(latestReport))) unique.set(idOf(latestReport), {
+        id: idOf(latestReport), start: latestReport.start, end: latestReport.end,
+        updatedAt: latestReport.updatedAt, path: `archive/${idOf(latestReport)}.json`
+      });
+      entries = [...unique.values()].sort((a, b) => b.end.localeCompare(a.end) || b.start.localeCompare(a.start));
+      currentId = entries[0].id;
+      refreshList();
+      // A manual period choice made during the request takes precedence.
+      if (selection !== selectionAtStart) return;
+      const requested = requestedPeriod();
+      const target = entries.find(entry => entry.id === requested) || entries[0];
+      const cached = cache.get(target.id);
+      const changed = !verified || target.id !== selectedId || cached?.updatedAt !== target.updatedAt;
+      // An embedded report not yet archived is already newer than the archive index.
+      const awaitingArchive = target.id === idOf(latestReport) && !index.reports.some(entry => entry.id === target.id);
+      if (changed && !awaitingArchive) {
+        if (!await select(target, false, !verified)) return;
+      }
+      verified = true;
+      updateBadge();
+      message.textContent = requested && !entries.some(entry => entry.id === requested)
+        ? '해당 보고기간이 없어 최신 보고서를 표시합니다.' : '';
+    } catch {
+      if (!disposed) {
+        message.textContent = '최신 보고서 확인에 실패했습니다. 연결이 복구되면 자동으로 다시 확인합니다.';
+        badge.textContent = '갱신 확인 필요';
+      }
+    } finally { refreshing = false; }
   }
-  readJSON('history.json').then(index => {
-    if (!Array.isArray(index.reports)) throw new Error('목록이 없습니다.');
-    const unique = new Map(entries.map(entry => [entry.id, entry]));
-    for (const entry of index.reports) if (validEntry(entry) && !unique.has(entry.id)) unique.set(entry.id, entry);
-    entries = [...unique.values()].sort((a, b) => b.end.localeCompare(a.end) || b.start.localeCompare(a.start));
-    currentId = entries[0].id;
-    badge.textContent = selectedId === currentId ? '최신' : '이전 보고서';
-    refreshList();
-    message.textContent = entries.length === 1 ? '이전 보고서는 다음 보고서 게시 후 여기에 쌓입니다.' : '';
-    const target = entries.find(entry => entry.id === requested) || entries[0];
-    if (selection === 0 && target.id !== selectedId) select(target, false);
-    else if (requested && !entries.some(entry => entry.id === requested)) message.textContent = '해당 보고기간이 없어 최신 보고서를 표시합니다.';
-  }).catch(() => {
-    message.textContent = '이전 보고서 목록을 불러오지 못했습니다. 최신 보고서는 그대로 확인할 수 있습니다.';
-  });
-  document.addEventListener('click', event => {if (!menu.contains(event.target)) menu.open = false;});
-  menu.addEventListener('keydown', event => {if (event.key === 'Escape') {menu.open = false; heading.focus();}});
-  window.addEventListener('popstate', () => {
-    const id = new URL(location.href).searchParams.get('period') || currentId;
-    const entry = entries.find(entry => entry.id === id);
+  show(latestReport);
+  if (location.protocol === 'file:') {
+    verified = true;
+    updateBadge();
+    message.textContent = '이전 보고서는 게시된 사이트에서 확인할 수 있습니다.';
+    return () => { disposed = true; cleanup?.(); };
+  }
+  const outside = event => { if (!menu.contains(event.target)) menu.open = false; };
+  const escape = event => { if (event.key === 'Escape') { menu.open = false; heading.focus(); } };
+  const popstate = () => {
+    const entry = entries.find(entry => entry.id === (requestedPeriod() || currentId));
     if (entry) select(entry, false);
-  });
-  return () => cleanup?.();
+  };
+  const visible = () => { if (document.visibilityState === 'visible') refreshLatest(); };
+  document.addEventListener('click', outside);
+  menu.addEventListener('keydown', escape);
+  document.addEventListener('visibilitychange', visible);
+  window.addEventListener('focus', refreshLatest);
+  window.addEventListener('pageshow', refreshLatest);
+  window.addEventListener('online', refreshLatest);
+  window.addEventListener('popstate', popstate);
+  const interval = setInterval(refreshLatest, 60000);
+  refreshLatest();
+  return () => {
+    disposed = true;
+    selection++;
+    clearInterval(interval);
+    document.removeEventListener('click', outside);
+    menu.removeEventListener('keydown', escape);
+    document.removeEventListener('visibilitychange', visible);
+    window.removeEventListener('focus', refreshLatest);
+    window.removeEventListener('pageshow', refreshLatest);
+    window.removeEventListener('online', refreshLatest);
+    window.removeEventListener('popstate', popstate);
+    cleanup?.();
+  };
 }
-
