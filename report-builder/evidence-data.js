@@ -30,7 +30,11 @@ export function parseEvidenceOCR(kind,data,width,height){
   if(kind==='bank'){
     for(const line of lines){
       const account=line.find(w=>/^\d{10,16}$/.test(w.text.replace(/\s/g,'')));
-      if(!account)continue;
+      if(!account){
+        const code=line.find(w=>/^\d{5}$/.test(w.text)&&w.bbox.x0<width*.10);
+        if(code)fields.push({key:'',label:'계좌 식별 확인 필요 (코드 '+code.text+')',value:null,confidence:0,confirmed:false});
+        continue;
+      }
       const amounts=line.filter(w=>w.bbox.x0>account.bbox.x1&&w.bbox.x0<width*.50)
         .map(w=>({...w,value:evidenceNumber(w.text)})).filter(w=>w.value!==null);
       // The supplied ERP layout has four columns (opening/in/out/closing) in its left ledger.
