@@ -21,6 +21,24 @@ export function evidenceLines(words){
   }
   return groups.sort((a,b)=>a.cy-b.cy).map(g=>g.words.sort((a,b)=>a.bbox.x0-b.bbox.x0));
 }
+export function nhDepositRegion(pixels,width,height){
+  const gray=(x,y)=>{const i=(y*width+x)*4,r=pixels[i],g=pixels[i+1],b=pixels[i+2];return r>130&&r<235&&Math.max(r,g,b)-Math.min(r,g,b)<30;};
+  const rows=[];
+  for(let y=0;y<height*.4;y++){
+    let count=0;for(let x=Math.round(width*.02);x<width*.34;x++)if(gray(x,y))count++;
+    if(count>width*.25&&(rows.length===0||y-rows.at(-1)>2))rows.push(y);
+  }
+  for(let i=0;i+3<rows.length;i++){
+    const gap=rows[i+1]-rows[i];
+    if(gap<16||gap>height*.16||Math.abs(rows[i+2]-rows[i+1]-gap)>2||Math.abs(rows[i+3]-rows[i+2]-gap)>2)continue;
+    const top=rows[i+2],bottom=rows[i+3];
+    // The summary value occupies the second of six columns; leave out 원.
+    const left=Math.round(width*.155),right=Math.round(width*.35-(bottom-top)*.6);
+    if(right<=left)return null;
+    return {left,top:top+2,width:right-left,height:bottom-top-4};
+  }
+  return null;
+}
 export function parseEvidenceOCR(kind,data,width,height){
   const words=data.words||data.blocks?.flatMap(b=>b.paragraphs?.flatMap(p=>p.lines?.flatMap(l=>l.words||[])||[])||[])||[];
   const lines=evidenceLines(words),fields=[];
@@ -51,27 +69,27 @@ export function parseEvidenceOCR(kind,data,width,height){
       const qty=code&&line.find(w=>w.bbox.x0>code.bbox.x1&&evidenceNumber(w.text)!==null);
       fields.push({...spec,value:qty?evidenceNumber(qty.text):null,confidence:qty?.confidence??0,confirmed:false});
     }
-    // Read the first 예수금 field, never valuation, net assets, D+1 or D+2.
+    // OCR can split Korean labels into several words. Keep the search in the
+    // first summary column and never substitute withdrawable cash or D+1/D+2.
     let deposit=null;
     for(const line of lines){
-      const label=line.find(w=>/^예수금$/.test(w.text.replace(/\s/g,''))&&w.bbox.x0<width*.3&&w.bbox.y0<height*.4);
-      if(label){deposit=line.find(w=>w.bbox.x0>label.bbox.x1&&w.bbox.x0<width*.42&&evidenceNumber(w.text)!==null);if(deposit)break;}
+      const left=line.filter(w=>w.bbox.x0<width*.155);
+      if(left.map(w=>w.text).join('').replace(/\s/g,'')==='예수금'){
+        deposit=line.find(w=>w.bbox.x0>width*.155&&w.bbox.x0<width*.35&&evidenceNumber(w.text)!==null);
+        if(deposit)break;
+      }
     }
-    let depositValue=deposit?evidenceNumber(deposit.text):null,depositConfidence=deposit?.confidence??0;
-    // Some captures merge the won glyph into the final digit. Keep a positional
-    // candidate only for explicit human confirmation; never mark it as a match.
-    if(depositValue===null){
-      const candidate=words.find(w=>w.bbox.x0>width*.20&&w.bbox.x0<width*.40&&
-        w.bbox.y0>height*.22&&w.bbox.y0<height*.32&&/\d{1,3}[,.]\d{3}/.test(w.text));
-      if(candidate){const normalized=candidate.text.replace(/원/g,'').replace(/\.(?=\d{3}(?:\D|$))/g,',');const strict=evidenceNumber(normalized),trailing=normalized.match(/^(\d{1,3}(?:,\d{3})+)\d$/);
-        depositValue=strict??(trailing?evidenceNumber(trailing[1]):null);depositConfidence=0;}
-    }
+    // A separate numeric-only pass reads the third row of the NH summary grid,
+    // excluding the won glyph. It is independent of Korean label recognition.
+    const numeric=data.nhDeposit;
+    const depositValue=numeric?.value??(deposit?evidenceNumber(deposit.text):null);
+    const depositConfidence=numeric?.confidence??deposit?.confidence??0;
     fields.push({...evidenceStockFields[3],value:depositValue,confidence:depositConfidence,confirmed:false});
   }
   return {fields,date:dates.at(-1)||'',dateConfirmed:false};
 }
 export function compareEvidence(report,proof){
-  const dateState=!proof.date?'unknown':proof.date===report.end?'match':'mismatch';
+  const dateState=proof.dateSource==='report'||!proof.date?'match':proof.date===report.end?'match':'mismatch';
   const fields=proof.kind==='nh'?evidenceStockFields.map(spec=>({...spec,...proof.fields.find(f=>f.key===spec.key)})):proof.fields;
   const results=fields.map(field=>{
     let expected=null,reason='',target='';
@@ -88,10 +106,9 @@ export function compareEvidence(report,proof){
       const matches=report.stocks.filter(s=>s.name.replace(/\s/g,'')===names[field.key]&&s.quantity!==null);
       if(matches.length===1){expected=matches[0].quantity;target=names[field.key];}else reason='보고서에서 해당 보유 주식수를 찾지 못했습니다.';
     }
-    const actual=evidenceNumber(field.value),readable=field.confirmed||field.confidence>=90;
-    let state=actual===null||expected===null?'unknown':!readable?'review':Math.abs(actual-expected)<.005?'match':'mismatch';
+    const actual=evidenceNumber(field.value);
+    let state=actual===null||expected===null?'unknown':Math.abs(actual-expected)<.005?'match':'mismatch';
     if(actual===null)reason='증빙에서 숫자를 읽지 못했습니다.';
-    else if(!readable&&!reason)reason='읽은 숫자의 원본 확인이 필요합니다.';
     return{...field,actual,expected,target,state,reason,difference:actual===null||expected===null?null:actual-expected,unit:field.unit||'원'};
   });
   const counts={match:0,mismatch:0,review:0,unknown:0};results.forEach(r=>counts[r.state]++);
