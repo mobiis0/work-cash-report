@@ -1,4 +1,4 @@
-import {mountEvidenceAttachments} from './evidence.js?v=20261023-4';
+import {mountEvidenceAttachments} from './evidence.js?v=20261023-5';
 import {loadPublishedReports,mergePublishedHistory} from './history-source.js?v=20261008-4';
 import {inspectWorkbook,buildReport,validateReport} from './report-data.js?v=20261008-4';
 import {renderReport} from './viewer.js?v=20261023-4';
@@ -7,7 +7,7 @@ let model=null,fileName='',report=null,resultURL=null,siteHTML='',cleanup=null,b
 const controls=['weekly','daily','graph'];
 function status(message,type=''){const s=$('status');s.textContent=message;s.className='builder-status'+(type?' '+type:'');}
 function clearResult(){cleanup?.();cleanup=null;report=null;siteHTML='';if(resultURL)URL.revokeObjectURL(resultURL);resultURL=null;$('result-controls').hidden=true;$('preview-section').hidden=true;$('site-content').value='';$('download').removeAttribute('href');$('preview').replaceChildren();}
-const evidenceInput=mountEvidenceAttachments($('evidence-inputs'),()=>{clearResult();});
+const evidenceInput=mountEvidenceAttachments($('evidence-inputs'),()=>{clearResult();},()=>selectedSource()?.end||'');
 function selectedSource(){return model?.reports.find(s=>s.name===$('weekly').value);}
 function readinessMessage(){const source=selectedSource();if(!source)return '주간 시트를 선택하세요.';if(source.ready)return '보고기간과 시트를 확인한 뒤 보고서 사이트를 생성하세요.';return `${source.name} 시트의 계산 결과가 비어 있어 생성할 수 없습니다. 누락된 셀: ${source.missing.join(', ')}. 엑셀에서 해당 셀과 계산 수식을 확인하고 저장한 뒤 다시 업로드하세요.`;}
 function showReadiness(){const source=selectedSource();status(readinessMessage(),source&&!source.ready?'error':'');}
@@ -22,7 +22,7 @@ $('workbook').addEventListener('change',event=>loadFile(event.target.files[0]));
 const zone=$('drop-zone');for(const type of ['dragenter','dragover'])zone.addEventListener(type,event=>{event.preventDefault();zone.classList.add('dragging');});for(const type of ['dragleave','drop'])zone.addEventListener(type,event=>{event.preventDefault();zone.classList.remove('dragging');});zone.addEventListener('drop',event=>{const files=event.dataTransfer.files;if(files.length!==1){status('엑셀 파일 한 개를 선택하세요.','error');return;}loadFile(files[0]);});
 $('weekly').addEventListener('change',()=>{clearResult();syncSources();showReadiness();});for(const key of ['daily','graph'])$(key).addEventListener('change',()=>{clearResult();status('시트 선택이 바뀌었습니다. 보고서 사이트를 다시 생성하세요.');});
 let templatePromise=null;
-async function makeSite(data){templatePromise??=Promise.all(['viewer.css','viewer.js?v=20261023-4','print-report.css?v=20261023-1','print-report.js?v=20261023-4','report-history.css?v=20261008-1','report-history.js?v=20261016-1','evidence.css?v=20261023-4','evidence-data.js?v=20261023-3','evidence.js?v=20261023-4'].map(async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw Error('보고서 양식을 불러오지 못했습니다. 새로고침하세요.');return response.text();}));const[viewerCSS,viewer,printCSS,printJS,historyCSS,historyJS,evidenceCSS,evidenceDataJS,evidenceJS]=await templatePromise;const css=viewerCSS+"\n"+printCSS+"\n"+historyCSS+"\n"+evidenceCSS;
+async function makeSite(data){templatePromise??=Promise.all(['viewer.css','viewer.js?v=20261023-4','print-report.css?v=20261023-1','print-report.js?v=20261023-4','report-history.css?v=20261008-1','report-history.js?v=20261016-1','evidence.css?v=20261023-4','evidence-data.js?v=20261023-5','evidence.js?v=20261023-5'].map(async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw Error('보고서 양식을 불러오지 못했습니다. 새로고침하세요.');return response.text();}));const[viewerCSS,viewer,printCSS,printJS,historyCSS,historyJS,evidenceCSS,evidenceDataJS,evidenceJS]=await templatePromise;const css=viewerCSS+"\n"+printCSS+"\n"+historyCSS+"\n"+evidenceCSS;
  const json=JSON.stringify(data).replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
  const evCode=evidenceDataJS.replace(/^export /gm,'')+'\n'+evidenceJS.replace(/^import .*?;\s*/gm,'').replace(/^export /gm,'');
  const code=evCode+'\n'+printJS.replace(/^import .*?;\s*/gm,'').replace(/^export /gm,'')+'\n'+viewer.replace(/^import .*?;\s*/gm,'').replace(/^export /gm,'')+'\n'+historyJS.replace(/^export /gm,'');
