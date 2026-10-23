@@ -62,8 +62,8 @@ export function parseEvidenceOCR(kind,data,width,height){
     // candidate only for explicit human confirmation; never mark it as a match.
     if(depositValue===null){
       const candidate=words.find(w=>w.bbox.x0>width*.20&&w.bbox.x0<width*.40&&
-        w.bbox.y0>height*.22&&w.bbox.y0<height*.32&&/\d{1,3},\d{3}/.test(w.text));
-      if(candidate){const strict=evidenceNumber(candidate.text),trailing=candidate.text.match(/^(\d{1,3}(?:,\d{3})+)\d$/);
+        w.bbox.y0>height*.22&&w.bbox.y0<height*.32&&/\d{1,3}[,.]\d{3}/.test(w.text));
+      if(candidate){const normalized=candidate.text.replace(/원/g,'').replace(/\.(?=\d{3}(?:\D|$))/g,',');const strict=evidenceNumber(normalized),trailing=normalized.match(/^(\d{1,3}(?:,\d{3})+)\d$/);
         depositValue=strict??(trailing?evidenceNumber(trailing[1]):null);depositConfidence=0;}
     }
     fields.push({...evidenceStockFields[3],value:depositValue,confidence:depositConfidence,confirmed:false});

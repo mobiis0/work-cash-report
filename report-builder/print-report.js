@@ -1,4 +1,4 @@
-import {evidencePageHTML} from './evidence.js?v=20261023-2';
+import {evidencePageHTML} from './evidence.js?v=20261023-3';
 // Calendar windows are anchored to the report end, never to a point count.
 export function historyForPeriod(history,end,years=1){
  const last=new Date(end+'T00:00:00Z');

@@ -1,4 +1,4 @@
-import {evidenceStockFields,evidenceNumber,parseEvidenceOCR,compareEvidence} from './evidence-data.js?v=20261023-2';
+import {evidenceStockFields,evidenceNumber,parseEvidenceOCR,compareEvidence} from './evidence-data.js?v=20261023-3';
 const evEscape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const evFormat=value=>value===null||value===undefined?'—':Number(value).toLocaleString('ko-KR',{maximumFractionDigits:2});
 const evLabels={match:'일치',mismatch:'불일치',review:'확인 필요',unknown:'미확인'};
