@@ -1,4 +1,5 @@
-import {installReportPrint,historyForPeriod} from './print-report.js?v=20261002-8';
+import {installEvidenceView} from './evidence.js?v=20261023-1';
+import {installReportPrint,historyForPeriod} from './print-report.js?v=20261023-1';
 const escapeText=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nf=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0});
 const decimal=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:2});
@@ -21,9 +22,10 @@ export function renderReport(root,report){
  ${report.subtotal.map(s=>`<tr class="subtotal ${s.label.includes('합계')?'total-row':''}"><th colspan="3">${e(s.label)}</th><td class="numeric">${amount(s.previous,s.currency)}</td><td class="numeric">${s.in===null?'—':amount(s.in,s.currency)}</td><td class="numeric">${s.out===null?'—':amount(s.out,s.currency)}</td><td class="numeric balance">${s.key?`<button class="chart-button" data-chart="${s.key}" aria-label="${e(s.label)} 추이" aria-haspopup="dialog">${amount(s.current,s.currency)}<span class="mini-tag">추이</span></button>`:amount(s.current,s.currency)}</td><td>${s.currency==='KRW'?'원':s.currency}</td></tr>`).join('')}</tbody></table></div></section>
  <section class="report-section"><div class="section-title"><h2>주식보유 현황</h2><span>단위: 주, 원</span></div><div class="table-scroll"><table><thead><tr><th>구분</th><th>증권사</th><th>보유주식수</th><th>주당 가격</th><th>이전주 총액</th><th>금주 총액</th><th>차액</th><th>비고</th></tr></thead><tbody>${report.stocks.map(s=>`<tr><td>${e(s.name)}</td><td>${e(s.broker)}</td><td class="numeric">${amount(s.quantity)}</td><td class="numeric">${amount(s.price)}</td><td class="numeric">${amount(s.previous)}</td><td class="numeric balance">${amount(s.current)}</td><td class="numeric ${color(s.change)}">${signed(s.change)}</td><td class="notes">${e(s.note)}</td></tr>`).join('')}<tr class="total-row"><th colspan="4">합계</th><td class="numeric">${amount(report.stockTotal.previous)}</td><td class="numeric"><button class="chart-button" data-chart="stocks" aria-label="주식 총액 추이" aria-haspopup="dialog">${amount(report.stockTotal.current)}<span class="mini-tag">추이</span></button></td><td class="numeric ${color(report.stockTotal.change)}">${signed(report.stockTotal.change)}</td><td></td></tr></tbody></table></div></section>
  <section class="report-section summary-section"><div class="section-title"><h2>자금 총액비교 현황</h2><span>단위: 원</span></div><div class="table-scroll"><table class="summary-table"><thead><tr><th>구분</th><th>이전주</th><th>금주</th><th>차액</th></tr></thead><tbody>${report.summary.map(s=>`<tr class="${s.key==='assets'?'grand-total':''}"><th>${e(s.label)}</th><td class="numeric">${amount(s.previous)}</td><td class="numeric"><button class="chart-button" data-chart="${s.key}" aria-label="${e(s.label)} 추이" aria-haspopup="dialog">${amount(s.current)}<span class="mini-tag">추이</span></button></td><td class="numeric ${color(s.change)}">${signed(s.change)}</td></tr>`).join('')}</tbody></table></div></section>
- <footer class="report-footer"><span>입출금 설명: ${e(report.source.daily||'일일내역 미연결')} · 추이: ${e(report.source.graph||'주간 비교')}</span><span>${e(report.privacy)}</span></footer>
+ <footer class="report-footer"><span>입출금 설명: ${e(report.source.daily||'일일내역 미연결')} · 추이: ${e(report.source.graph||'주간 비교')}<a class="evidence-link" href="#evidence">증빙보기</a></span><span>${e(report.privacy)}</span></footer>
  </article><aside class="report-popover" role="dialog" aria-label="보고서 상세" hidden><div class="popover-bar"><span class="popover-kind"></span><button class="popover-close" aria-label="상세 닫기">×</button></div><div class="popover-content"></div><p class="popover-hint">클릭하면 고정 · Esc로 닫기</p></aside>`;
  const paperCleanup=installReportPrint(root,report);
+ const evidenceCleanup=installEvidenceView(root,report);
  const pop=root.querySelector('.report-popover'),body=pop.querySelector('.popover-content');
  function hide(){pop.hidden=true;pinned=false;anchor?.setAttribute('aria-expanded','false');anchor=null;clearTimeout(timer);}
  function place(){if(!anchor||pop.hidden)return;const rect=anchor.getBoundingClientRect(),width=Math.min(470,innerWidth-24);pop.style.width=width+'px';const height=pop.offsetHeight;let left=Math.max(12,Math.min(rect.left,innerWidth-width-12)),top=rect.bottom+8;if(top+height>innerHeight-12)top=Math.max(12,rect.top-height-8);pop.style.left=left+'px';pop.style.top=top+'px';pop.style.maxHeight=Math.max(180,innerHeight-24)+'px';}
@@ -43,7 +45,7 @@ export function renderReport(root,report){
  pop.querySelector('.popover-close').addEventListener('click',hide);
  listen('keydown',event=>{if(event.key==='Escape')hide();});
  listen('scroll',place,{capture:true});window.addEventListener('resize',place);window.addEventListener('scroll',place,{passive:true});
- return ()=>{paperCleanup();hide();controller.abort();window.removeEventListener('resize',place);window.removeEventListener('scroll',place);};
+ return ()=>{evidenceCleanup();paperCleanup();hide();controller.abort();window.removeEventListener('resize',place);window.removeEventListener('scroll',place);};
 }
 function chart(points,label){
  if(points.length<2)return'<p class="empty-chart">추이를 표시하려면 두 시점 이상의 데이터가 필요합니다.</p>';

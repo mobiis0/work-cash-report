@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import {compareEvidence,evidenceNumber,parseEvidenceOCR} from '../report-builder/evidence-data.js';
+import {evidencePageHTML} from '../report-builder/evidence.js';
+const report={start:'2026-10-17',end:'2026-10-23',rows:[{bank:'기업은행',type:'보통',account:'•••• 1001',currency:'KRW',current:0}],stocks:[{name:'현대차',quantity:2,price:10,current:20,broker:'NH투자증권'},{name:'모비스',quantity:30,price:99,current:2970,broker:'NH투자증권'},{name:'휴네시온',quantity:400,price:1,current:400,broker:'NH투자증권'},{name:'',quantity:null,current:5000,broker:'NH투자증권'},{name:'모비스4CB',quantity:123456,current:99999,broker:'NH투자증권'}]};
+const field=(key,value,confirmed=true)=>({key,value,confirmed,label:key});
+let proof={kind:'nh',date:report.end,fields:[field('005380',2),field('250060',30),field('290270',400),field('deposit',5000)]};
+let check=compareEvidence(report,proof);assert.equal(check.state,'match');assert.equal(check.results.length,4);
+const change=structuredClone(report);change.stocks[0].price=999;change.stocks[0].current=1998;assert.equal(compareEvidence(change,proof).state,'match','valuation ignored');
+proof.fields[0].value=3;check=compareEvidence(report,proof);assert.equal(check.state,'mismatch');assert.equal(check.results[0].difference,1);
+proof.fields[0].value=2;proof.fields[3].confirmed=false;assert.equal(compareEvidence(report,proof).results[3].state,'review');proof.fields[3].confidence=95;assert.equal(compareEvidence(report,proof).state,'match');
+proof.fields[3].value=null;assert.equal(compareEvidence(report,proof).results[3].state,'unknown');proof.fields[3].value=5000;
+proof.date='2026-10-22';assert.equal(compareEvidence(report,proof).state,'mismatch');proof.date='';assert.equal(compareEvidence(report,proof).state,'review');
+const bank={kind:'bank',date:report.end,fields:[field('1001',0)]};assert.equal(compareEvidence(report,bank).state,'match','zero is a real amount');bank.fields[0].value=null;assert.equal(compareEvidence(report,bank).state,'review','missing not zero');bank.fields[0].value=0;
+const duplicate=structuredClone(report);duplicate.rows.push({...duplicate.rows[0],bank:'다른은행'});assert.equal(compareEvidence(duplicate,bank).results[0].state,'unknown','ambiguous account never matches');
+assert.equal(evidenceNumber(''),null);assert.equal(evidenceNumber('0'),0);assert.equal(evidenceNumber('1,234원'),1234);assert.equal(evidenceNumber('1,2345'),null);assert.equal(evidenceNumber('abc'),null);
+const malicious={...proof,fileName:'<script>alert(1)</script>',image:'data:image/svg+xml;base64,xxx'};report.evidence={proofs:[malicious]};const html=evidencePageHTML(report);assert(!html.includes('<script>alert'));assert(!html.includes('data:image/svg'));assert(html.includes('&lt;script&gt;'));assert(html.includes('기준일 확인 필요'));
+assert(evidencePageHTML({...report,evidence:undefined}).includes('첨부된 증빙이 없습니다'));
+// Missing source columns must never select an income/outflow value as closing balance.
+const w=(text,x0,y0,confidence=99)=>({text,bbox:{x0,x1:x0+40,y0,y1:y0+10},confidence});
+let ocr=parseEvidenceOCR('bank',{words:[w('12345678901001',200,100),w('5',400,100),w('6',500,100),w('7',600,100)],text:'2026-10-01 ~ 2026-10-23'},1600,400);assert.equal(ocr.fields[0].value,null);assert.equal(ocr.date,'2026-10-23');
+ocr=parseEvidenceOCR('nh',{words:[w('005380',200,300),w('2',300,300),w('250060',200,340),w('30',300,340),w('290270',200,380),w('400',300,380)]},1000,600);assert.equal(ocr.fields[0].value,2);assert.equal(ocr.fields[3].value,null);
+// The generated stand-alone report must bundle all imports and retain valid syntax.
+const get=p=>fs.readFileSync('report-builder/'+p,'utf8');
+const removeExports=s=>s.replace(/^export /gm,'');
+const bundle=s=>removeExports(s.replace(/^import .*?;\s*/gm,''));
+const code=removeExports(get('evidence-data.js'))+'\n'+bundle(get('evidence.js'))+'\n'+bundle(get('print-report.js'))+'\n'+bundle(get('viewer.js'))+'\n'+removeExports(get('report-history.js'));
+new vm.Script('(()=>{'+code+'\n})();');
+assert(code.includes('installEvidenceView'));assert(code.includes('treasury-evidence-page'));
+console.log('PASS: 4 NH fields, bond/valuation exclusion, bank zero/missing/duplicate matching, confidence/date checks, XSS/image guard, OCR missing columns, standalone bundle syntax.');

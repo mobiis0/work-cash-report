@@ -27,6 +27,8 @@
 .treasury-page .p-account-inactive{background:#fafbfd;color:#748094}
 .treasury-page .p-account-inactive .p-bold{font-weight:400}
 
+.treasury-print-root .treasury-evidence-page{height:auto;min-height:189mm;break-before:page;page-break-before:always}.treasury-evidence-page .evidence-page{border:0;border-radius:0;box-shadow:none;padding:5mm 0}.treasury-evidence-page .evidence-comparison{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}.treasury-evidence-page .evidence-table{min-width:0}.treasury-evidence-page .evidence-card{break-inside:avoid}.treasury-evidence-page .evidence-back{display:none}
+
 .report-history{position:relative;display:inline-block;margin-top:10px;color:#536176;font-size:14px;line-height:1.4;max-width:100%}
 .report-history summary{display:flex;align-items:center;gap:9px;list-style:none;cursor:pointer;border:1px solid #d7e0eb;border-radius:8px;padding:9px 12px;background:#f8fafc;user-select:none}
 .report-history summary::-webkit-details-marker{display:none}
@@ -46,8 +48,205 @@
 @media(max-width:650px){.report-history{font-size:12px}.report-history summary{gap:6px;padding:8px}.report-history-list{max-width:calc(100vw - 44px)}.report-history-option{gap:8px;padding:11px 8px}}
 @media print{.report-history summary{border:0;padding:0;background:none}.report-history-arrow,.report-history-badge,.report-history-list,.report-history-status{margin:4px 0 0;padding:8px 10px;border-top:1px solid #e8edf3;font-size:12px;color:#607087;max-width:300px;white-space:normal}}
 
+.report-footer .evidence-link{font:inherit;color:inherit;margin-left:12px;text-underline-offset:3px}.report-footer .evidence-link:hover{color:#244a80}
+.evidence-page{max-width:1500px;margin:auto;padding:30px 32px;border:1px solid #dbe3ed;border-radius:12px;background:#fff;color:#20314c;box-shadow:0 8px 32px #17315a08}.evidence-page-heading{display:flex;justify-content:space-between;align-items:center;gap:20px;border-bottom:2px solid #1c3557;padding-bottom:22px}.evidence-page-heading p{margin:0;color:#61738c;font-size:10px;font-weight:700;letter-spacing:1.5px}.evidence-page-heading h1{font-size:27px;margin:9px 0}.evidence-page-heading span{font-size:13px;color:#63728a}.evidence-back{font-size:12px;color:#355a86;text-underline-offset:3px}.evidence-intro{font-size:12px;color:#61738c;line-height:1.8;margin:22px 0}.evidence-card{border:1px solid #dce4ef;border-radius:8px;margin:22px 0;overflow:hidden;break-inside:avoid}.evidence-card-heading{padding:15px 18px;background:#f4f7fb;display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:1px solid #dce4ef}.evidence-card-heading h2{font-size:15px;margin:0}.ev-state{display:inline-block;border:1px solid transparent;border-radius:4px;padding:4px 7px;font-size:11px;font-weight:600;white-space:nowrap}.ev-match{background:#edf8f2;border-color:#bfe1cf;color:#256647}.ev-mismatch{background:#fff0f0;border-color:#efc0c4;color:#b02e3f}.ev-review,.ev-unknown{color:#885e1f}.ev-state.ev-review,.ev-state.ev-unknown{background:#fff8e9;border-color:#ecd4a7}.evidence-comparison{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}.evidence-original{padding:18px;border-right:1px solid #dce4ef;background:#fcfdff}.evidence-original>p{font-size:11px;color:#61738c;margin:0 0 15px;overflow-wrap:anywhere}.evidence-original img{width:100%;height:auto;display:block;border:1px solid #e1e7ef}.evidence-original>small{display:block;margin-top:10px;font-size:10px;color:#7e899a}.evidence-checks{padding:18px;min-width:0}.evidence-date{font-size:11px;line-height:1.8;margin:0 0 16px;color:#6a778b}.ev-date-mismatch{color:#b02e3f}.ev-date-unknown{color:#885e1f}.evidence-table-scroll{overflow:auto}.evidence-table{min-width:420px;width:100%;font-size:11px;white-space:normal}.evidence-table th,.evidence-table td{padding:11px 8px}.evidence-table tbody th{font-weight:500;width:32%}.evidence-table td{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.evidence-table small{display:block;font-size:9px;color:#7d8797;font-weight:400;margin-top:4px;white-space:normal}.evidence-check-summary{font-size:11px;color:#516881;margin:16px 0}.evidence-note{font-size:11px;color:#78869a;line-height:1.8}.evidence-empty{padding:45px 20px;text-align:center;color:#718097;font-size:13px;line-height:1.9}.evidence-upload-heading h2{font-size:17px;color:#233c5e;margin:0}.evidence-upload-heading small{font-size:11px;font-weight:400;color:#7d8b9d;margin-left:8px}.evidence-upload-heading p{font-size:12px;color:#61738c;line-height:1.8}.evidence-upload-slot{border:1px solid #dce4ef;border-radius:7px;padding:18px;margin-top:16px;background:#fcfdff}.evidence-upload-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.evidence-upload-label strong{font-size:13px}.evidence-upload-slot input[type=file]{font-size:12px;max-width:100%}.evidence-upload-slot button{background:white;border:1px solid #cdd8e6;border-radius:4px;padding:5px 9px;color:#526881;font-size:11px}.ev-upload-status{font-size:11px;color:#647892;line-height:1.8}.ev-review-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,1fr);align-items:center;gap:22px;margin:15px 0}.ev-thumbnail{width:100%;max-height:140px;object-fit:contain;border:1px solid #dce4ef;background:white}.ev-review-grid label{font-size:12px;display:grid;gap:8px}.ev-review-grid input{padding:7px 9px;border:1px solid #ccd7e5;border-radius:4px;color:#20314c;max-width:190px}.ev-input-table{width:100%;min-width:480px;font-size:11px;background:#fff}.ev-input-table input.ev-value{width:100%;max-width:220px;padding:7px;border:1px solid #ccd7e5;border-radius:4px;text-align:right;font-variant-numeric:tabular-nums}.ev-input-table input.ev-key{width:90px;padding:7px;border:1px solid #ccd7e5;border-radius:4px}.ev-input-table small{display:block;font-size:9px;color:#8a754f;margin-top:5px}.ev-input-table input[type=checkbox]{width:17px;height:17px}.ev-add{margin-top:12px}.ev-image-open{display:block;border:0;background:transparent;padding:0;cursor:zoom-in;width:100%}.ev-image-dialog{width:95vw;max-width:1800px;max-height:95vh;border:1px solid #ccd7e5;border-radius:8px;padding:15px;background:white}.ev-image-dialog::backdrop{background:#13283e99}.ev-image-dialog img{display:block;width:100%;height:auto}.ev-image-dialog button{display:block;margin:0 0 12px auto;padding:6px 15px;border:1px solid #ccd7e5;background:#f5f8fc;border-radius:4px;color:#355371}.evidence-page[hidden],.treasury-toolbar[hidden],.cash-document[hidden]{display:none!important}
+@media(max-width:1000px){.evidence-comparison{grid-template-columns:1fr}.evidence-original{border-right:0;border-bottom:1px solid #dce4ef}.evidence-page{padding:22px 18px}.evidence-page-heading h1{font-size:23px}}@media(max-width:600px){.evidence-page-heading{align-items:flex-start}.evidence-back{font-size:11px;white-space:nowrap}.ev-review-grid{grid-template-columns:1fr}.evidence-upload-slot{padding:12px}.evidence-table th,.evidence-table td{padding:9px 6px}.evidence-checks,.evidence-original{padding:12px}}
+@media print{.evidence-back,.ev-image-dialog{display:none}.evidence-page{box-shadow:none;border:0}.evidence-table{min-width:0}.evidence-comparison{grid-template-columns:1fr 1fr}}
+
 body{padding:30px 22px}@media(max-width:650px){body{padding:12px 8px}}@media print{body{padding:0}}</style></head><body><main id="report"></main><script>
 (()=>{
+const evidenceStockFields = [
+  {key:'005380',label:'현대차 보유 주식수',unit:'주'},
+  {key:'250060',label:'모비스 보유 주식수',unit:'주'},
+  {key:'290270',label:'휴네시온 보유 주식수',unit:'주'},
+  {key:'deposit',label:'NH투자증권 예수금',unit:'원'}
+];
+function evidenceNumber(value){
+  if(typeof value==='number')return Number.isFinite(value)?value:null;
+  const s=String(value??'').trim().replace(/[원주\s]/g,'');
+  if(!s||!/^[-+]?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?$/.test(s))return null;
+  const n=Number(s.replaceAll(',',''));return Number.isFinite(n)?n:null;
+}
+function evidenceLines(words){
+  const sorted=words.filter(w=>w.text?.trim()&&w.bbox).sort((a,b)=>a.bbox.y0-b.bbox.y0||a.bbox.x0-b.bbox.x0);
+  const groups=[];
+  for(const word of sorted){
+    const cy=(word.bbox.y0+word.bbox.y1)/2,h=word.bbox.y1-word.bbox.y0;
+    let line=groups.find(g=>Math.abs(g.cy-cy)<Math.max(6,Math.min(g.h,h)*.6));
+    if(!line){line={cy,h,words:[]};groups.push(line);}
+    line.words.push(word);
+  }
+  return groups.sort((a,b)=>a.cy-b.cy).map(g=>g.words.sort((a,b)=>a.bbox.x0-b.bbox.x0));
+}
+function parseEvidenceOCR(kind,data,width,height){
+  const words=data.words||data.blocks?.flatMap(b=>b.paragraphs?.flatMap(p=>p.lines?.flatMap(l=>l.words||[])||[])||[])||[];
+  const lines=evidenceLines(words),fields=[];
+  const text=data.text||lines.map(line=>line.map(w=>w.text).join(' ')).join('\n');
+  const dates=[...text.matchAll(/(20\d{2})\s*[-./]\s*(\d{1,2})\s*[-./]\s*(\d{1,2})/g)]
+    .map(m=>`${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`).sort();
+  if(kind==='bank'){
+    for(const line of lines){
+      const account=line.find(w=>/^\d{10,16}$/.test(w.text.replace(/\s/g,'')));
+      if(!account)continue;
+      const amounts=line.filter(w=>w.bbox.x0>account.bbox.x1&&w.bbox.x0<width*.50)
+        .map(w=>({...w,value:evidenceNumber(w.text)})).filter(w=>w.value!==null);
+      // The supplied ERP layout has four columns (opening/in/out/closing) in its left ledger.
+      // Missing cells must not shift another column into the closing balance.
+      const balance=amounts.length===4?amounts[3]:null;
+      fields.push({key:account.text.replace(/\D/g,'').slice(-4),label:'계좌 •••• '+account.text.replace(/\D/g,'').slice(-4),
+        value:balance?.value??null,confidence:Math.min(account.confidence??0,balance?.confidence??0),confirmed:false});
+    }
+  }else{
+    for(const spec of evidenceStockFields){
+      if(spec.key==='deposit')continue;
+      const line=lines.find(line=>line.some(w=>w.text.replace(/\D/g,'').padStart(6,'0')===spec.key));
+      const code=line?.find(w=>w.text.replace(/\D/g,'').padStart(6,'0')===spec.key);
+      const qty=code&&line.find(w=>w.bbox.x0>code.bbox.x1&&evidenceNumber(w.text)!==null);
+      fields.push({...spec,value:qty?evidenceNumber(qty.text):null,confidence:qty?.confidence??0,confirmed:false});
+    }
+    // Read the first 예수금 field, never valuation, net assets, D+1 or D+2.
+    let deposit=null;
+    for(const line of lines){
+      const label=line.find(w=>/^예수금$/.test(w.text.replace(/\s/g,''))&&w.bbox.x0<width*.3&&w.bbox.y0<height*.4);
+      if(label){deposit=line.find(w=>w.bbox.x0>label.bbox.x1&&w.bbox.x0<width*.42&&evidenceNumber(w.text)!==null);if(deposit)break;}
+    }
+    let depositValue=deposit?evidenceNumber(deposit.text):null,depositConfidence=deposit?.confidence??0;
+    // Some captures merge the won glyph into the final digit. Keep a positional
+    // candidate only for explicit human confirmation; never mark it as a match.
+    if(depositValue===null){
+      const candidate=words.find(w=>w.bbox.x0>width*.20&&w.bbox.x0<width*.40&&
+        w.bbox.y0>height*.22&&w.bbox.y0<height*.32&&/\d{1,3},\d{3}/.test(w.text));
+      if(candidate){const strict=evidenceNumber(candidate.text),trailing=candidate.text.match(/^(\d{1,3}(?:,\d{3})+)\d$/);
+        depositValue=strict??(trailing?evidenceNumber(trailing[1]):null);depositConfidence=0;}
+    }
+    fields.push({...evidenceStockFields[3],value:depositValue,confidence:depositConfidence,confirmed:false});
+  }
+  return {fields,date:dates.at(-1)||'',dateConfirmed:false};
+}
+function compareEvidence(report,proof){
+  const dateState=!proof.date?'unknown':proof.date===report.end?'match':'mismatch';
+  const fields=proof.kind==='nh'?evidenceStockFields.map(spec=>({...spec,...proof.fields.find(f=>f.key===spec.key)})):proof.fields;
+  const results=fields.map(field=>{
+    let expected=null,reason='',target='';
+    if(proof.kind==='bank'){
+      const suffix=String(field.key).replace(/\D/g,'');
+      const matches=report.rows.filter(row=>row.currency==='KRW'&&String(row.account).replace(/\D/g,'').endsWith(suffix)&&suffix.length===4);
+      if(matches.length===1){expected=matches[0].current;target=matches[0].bank+' '+matches[0].type;}
+      else reason=matches.length?'계좌 연결이 중복됩니다.':'보고서에서 해당 원화 계좌를 찾지 못했습니다.';
+    }else if(field.key==='deposit'){
+      const matches=report.stocks.filter(s=>/NH|엔에이치/i.test(s.broker+' '+s.name)&&s.quantity===null);
+      if(matches.length===1){expected=matches[0].current;target='NH투자증권 예수금';}else reason='NH 예수금 항목을 하나로 연결할 수 없습니다.';
+    }else{
+      const names={'005380':'현대차','250060':'모비스','290270':'휴네시온'};
+      const matches=report.stocks.filter(s=>s.name.replace(/\s/g,'')===names[field.key]&&s.quantity!==null);
+      if(matches.length===1){expected=matches[0].quantity;target=names[field.key];}else reason='보고서에서 해당 보유 주식수를 찾지 못했습니다.';
+    }
+    const actual=evidenceNumber(field.value),readable=field.confirmed||field.confidence>=90;
+    let state=actual===null||expected===null?'unknown':!readable?'review':Math.abs(actual-expected)<.005?'match':'mismatch';
+    if(actual===null)reason='증빙에서 숫자를 읽지 못했습니다.';
+    else if(!readable&&!reason)reason='읽은 숫자의 원본 확인이 필요합니다.';
+    return{...field,actual,expected,target,state,reason,difference:actual===null||expected===null?null:actual-expected,unit:field.unit||'원'};
+  });
+  const counts={match:0,mismatch:0,review:0,unknown:0};results.forEach(r=>counts[r.state]++);
+  const state=dateState==='mismatch'||counts.mismatch?'mismatch':dateState!=='match'||!results.length||counts.unknown||counts.review?'review':'match';
+  return{dateState,results,counts,state};
+}
+
+const evEscape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const evFormat=value=>value===null||value===undefined?'—':Number(value).toLocaleString('ko-KR',{maximumFractionDigits:2});
+const evLabels={match:'일치',mismatch:'불일치',review:'확인 필요',unknown:'미확인'};
+function safeEvidenceImage(value){return /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(value||'')?value:'';}
+function evidencePageHTML(report){
+  const proofs=report.evidence?.proofs||[];
+  const summary=proofs.map(proof=>compareEvidence(report,proof));
+  return `<section class="evidence-page"><header class="evidence-page-heading"><div><p>SUPPORTING DOCUMENTS</p><h1>증빙 대조</h1><span>${evEscape(report.start)} ~ ${evEscape(report.end)}</span></div><a href="#report" class="evidence-back">자금일보로 돌아가기</a></header>
+    ${!proofs.length?'<div class="evidence-empty">이 보고서에 첨부된 증빙이 없습니다. 보고서 생성 화면에서 증빙을 첨부한 뒤 다시 생성·게시하면 여기에 표시됩니다.</div>':`<p class="evidence-intro">증빙 원본과 보고서의 금주 값을 대조합니다. 은행은 잔액, NH투자증권은 3종목 보유 주식수와 예수금만 확인합니다.</p>`}
+    ${proofs.map((proof,i)=>{const check=summary[i],src=safeEvidenceImage(proof.image);return `<article class="evidence-card"><div class="evidence-card-heading"><h2>${proof.kind==='nh'?'NH투자증권':'은행 잔액'} 증빙</h2><span class="ev-state ev-${check.state}">${evLabels[check.state]}</span></div><div class="evidence-comparison"><div class="evidence-original"><p>증빙 원본 · ${evEscape(proof.fileName)}</p>${src?`<button type="button" class="ev-image-open" aria-label="증빙 이미지 확대"><img src="${src}" alt="${proof.kind==='nh'?'NH투자증권 잔고':'은행 잔액'} 증빙 원본"></button><small>이미지를 클릭하면 확대할 수 있습니다.</small>`:'<p>이미지 형식을 확인할 수 없습니다.</p>'}</div><div class="evidence-checks"><p class="evidence-date ev-date-${check.dateState}">증빙 기준일: ${evEscape(proof.date||'미입력')} · 보고서 기준일: ${evEscape(report.end)}${check.dateState==='match'?' · 기준일 일치':check.dateState==='mismatch'?' · 기준일 불일치':' · 기준일 확인 필요'}</p><div class="evidence-table-scroll"><table class="evidence-table"><thead><tr><th>대조 항목</th><th>증빙</th><th>보고서</th><th>결과</th></tr></thead><tbody>${check.results.map(row=>`<tr><th>${evEscape(row.target||row.label)}${proof.kind==='bank'?`<small>•••• ${evEscape(row.key)}</small>`:''}</th><td>${evFormat(row.actual)}<small>${evEscape(row.unit)}</small></td><td>${evFormat(row.expected)}<small>${evEscape(row.unit)}</small></td><td><span class="ev-state ev-${row.state}">${evLabels[row.state]}</span>${row.state==='mismatch'?`<small>차이 ${evFormat(row.difference)}${evEscape(row.unit)}</small>`:row.reason?`<small>${evEscape(row.reason)}</small>`:''}</td></tr>`).join('')||'<tr><td colspan="4">대조할 숫자를 읽지 못했습니다. 생성 화면에서 확인해 주세요.</td></tr>'}</tbody></table></div><p class="evidence-check-summary">일치 ${check.counts.match} · 불일치 ${check.counts.mismatch} · 확인 필요 ${check.counts.review+check.counts.unknown}</p>${proof.kind==='bank'?'<p class="evidence-note">증빙에 표시된 계좌만 대조합니다. 누적 입출금액과 주간 입출금액은 기간이 달라 비교하지 않습니다.</p>':'<p class="evidence-note">주가·평가금액·순자산·채권은 대조 대상에 포함하지 않습니다.</p>'}</div></div></article>`;}).join('')}
+  </section>`;
+}
+function installEvidenceView(root,report){
+  const page=document.createElement('div');page.id='evidence';page.innerHTML=evidencePageHTML(report);root.append(page);
+  const documentView=root.querySelector('.cash-document'),toolbar=root.querySelector('.treasury-toolbar');
+  const update=()=>{const show=location.hash==='#evidence';page.hidden=!show;documentView.hidden=show;if(toolbar)toolbar.hidden=show;if(show)page.scrollIntoView({block:'start'});};
+  const dialog=document.createElement('dialog');dialog.className='ev-image-dialog';
+  dialog.innerHTML='<button type="button">닫기</button><img alt="확대한 증빙 원본">';root.append(dialog);
+  dialog.querySelector('button').addEventListener('click',()=>dialog.close());
+  page.addEventListener('click',event=>{const button=event.target.closest('.ev-image-open');if(button){dialog.querySelector('img').src=button.querySelector('img').src;dialog.showModal();}});
+  window.addEventListener('hashchange',update);update();
+  return()=>{window.removeEventListener('hashchange',update);page.remove();dialog.remove();};
+}
+let evOCRScript=null,evOCRQueue=Promise.resolve();
+async function readEvidenceImage(image,onProgress){
+  evOCRScript??=new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';script.onload=resolve;script.onerror=()=>{evOCRScript=null;reject(Error('숫자 읽기 도구를 불러오지 못했습니다. 읽은 값 입력란에 직접 입력할 수 있습니다.'));};document.head.append(script);});
+  await evOCRScript;
+  const job=evOCRQueue.then(async()=>{
+    const worker=await Tesseract.createWorker('kor+eng',1,{
+      workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',
+      corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.0',
+      langPath:'https://tessdata.projectnaptha.com/4.0.0',
+      logger:message=>onProgress(message.status==='recognizing text'?`숫자를 읽는 중 ${Math.round(message.progress*100)}%`:'숫자 읽기 도구를 준비하는 중입니다.')
+    });
+    try{await worker.setParameters({tessedit_pageseg_mode:'6'});return(await worker.recognize(image)).data;}finally{await worker.terminate();}
+  });
+  evOCRQueue=job.catch(()=>{});return job;
+}
+async function prepareEvidenceFile(file){
+  if(!/^image\/(png|jpeg|webp)$/.test(file.type))throw Error('PNG, JPG 또는 WebP 이미지를 첨부해 주세요.');
+  if(file.size>12*1024*1024)throw Error('증빙 이미지는 한 장당 12MB 이하로 첨부해 주세요.');
+  const bitmap=await createImageBitmap(file);
+  if(bitmap.width*bitmap.height>40000000){bitmap.close();throw Error('이미지가 너무 큽니다. 필요한 화면만 캡처해 주세요.');}
+  const canvas=document.createElement('canvas'),scale=Math.min(1,2400/bitmap.width,3200/bitmap.height);
+  canvas.width=Math.round(bitmap.width*scale);canvas.height=Math.round(bitmap.height*scale);canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();
+  const image=canvas.toDataURL('image/png');
+  if(image.length>5500000)throw Error('보고서 용량이 커집니다. 증빙 화면을 필요한 부분만 잘라 첨부해 주세요.');
+  const ocr=document.createElement('canvas'),upscale=Math.min(3,4800/canvas.width);
+  ocr.width=Math.round(canvas.width*upscale);ocr.height=Math.round(canvas.height*upscale);ocr.getContext('2d').drawImage(canvas,0,0,ocr.width,ocr.height);
+  return{image,ocr:ocr.toDataURL('image/png'),width:ocr.width,height:ocr.height};
+}
+function mountEvidenceAttachments(host,onChange){
+  const state={bank:null,nh:null},tokens={bank:0,nh:0},pending=new Set();let locked=false;
+  host.innerHTML=`<div class="evidence-upload-heading"><h2>증빙 첨부 <small>선택 사항 · 이미지 2개</small></h2><p>은행 잔액 화면과 NH투자증권 잔고 화면을 함께 첨부하면 증빙 대조 페이지가 생성됩니다.</p></div>${['bank','nh'].map(kind=>`<section class="evidence-upload-slot" data-kind="${kind}"><div class="evidence-upload-label"><strong>${kind==='bank'?'은행 잔액 증빙':'NH투자증권 증빙'}</strong><button type="button" class="ev-remove" hidden>첨부 삭제</button></div><input type="file" accept="image/png,image/jpeg,image/webp" aria-label="${kind==='bank'?'은행 잔액':'NH투자증권'} 증빙 이미지"><p class="ev-upload-status" role="status">${kind==='bank'?'계좌별 잔액을 대조합니다.':'현대차·모비스·휴네시온 보유 주식수와 예수금만 대조합니다.'}</p><div class="ev-review"></div></section>`).join('')}<p class="evidence-note">처음 첨부할 때 숫자 인식 도구를 내려받습니다. 이미지는 브라우저에서 처리합니다. 기준일과 읽은 숫자를 확인한 뒤 보고서를 생성해 주세요.</p>`;
+  function editor(kind){
+    const slot=host.querySelector(`[data-kind="${kind}"]`),proof=state[kind],area=slot.querySelector('.ev-review');
+    slot.querySelector('.ev-remove').hidden=!proof;
+    if(!proof){area.replaceChildren();return;}
+    area.innerHTML=`<div class="ev-review-grid"><img class="ev-thumbnail" src="${proof.image}" alt="첨부 증빙 미리보기"><div><label>증빙 기준일 <input class="ev-date-input" type="date" value="${evEscape(proof.date)}"></label><p class="evidence-note">증빙에 날짜가 없으면 실제 조회한 기준일을 입력해 주세요.</p></div></div><div class="evidence-table-scroll"><table class="ev-input-table"><thead><tr><th>${kind==='bank'?'계좌 끝 4자리':'대조 항목'}</th><th>증빙에서 읽은 값</th><th>원본 확인</th></tr></thead><tbody>${proof.fields.map((field,i)=>`<tr data-field="${i}"><td>${kind==='bank'?`<input class="ev-key" inputmode="numeric" maxlength="4" aria-label="계좌 끝 4자리" value="${evEscape(field.key)}">`:evEscape(field.label)}</td><td><input class="ev-value" inputmode="decimal" aria-label="${evEscape(field.label||'잔액')} 증빙 값" value="${field.value===null?'':evFormat(field.value)}" placeholder="읽지 못함 · 직접 입력"><small>${field.confirmed?'직접 확인한 값':field.confidence>=90?'자동 인식':field.value===null?'숫자 확인 필요':'원본 확인 필요'}</small></td><td><input class="ev-confirm" type="checkbox" aria-label="${evEscape(field.label||'잔액')} 원본 확인" ${field.confirmed?'checked':''}></td></tr>`).join('')}</tbody></table></div>${kind==='bank'?'<button type="button" class="ev-add">계좌 행 추가</button>':''}`;
+  }
+  for(const kind of ['bank','nh']){
+    const slot=host.querySelector(`[data-kind="${kind}"]`),input=slot.querySelector('input[type="file"]'),message=slot.querySelector('.ev-upload-status');
+    input.addEventListener('change',async()=>{
+      if(locked||!input.files[0])return;const file=input.files[0],token=++tokens[kind];onChange();
+      const job=(async()=>{
+        try{
+          message.textContent='이미지를 준비하는 중입니다.';const prepared=await prepareEvidenceFile(file);if(token!==tokens[kind])return;
+          const blank=kind==='nh'?evidenceStockFields.map(f=>({...f,value:null,confidence:0,confirmed:false})):[];
+          state[kind]={kind,fileName:file.name,image:prepared.image,fields:blank,date:''};editor(kind);
+          try{const data=await readEvidenceImage(prepared.ocr,text=>{if(token===tokens[kind])message.textContent=text;});if(token!==tokens[kind])return;
+            Object.assign(state[kind],parseEvidenceOCR(kind,data,prepared.width,prepared.height));message.textContent='숫자 읽기가 끝났습니다. 기준일과 읽은 값을 확인해 주세요.';
+          }catch(error){if(token!==tokens[kind])return;message.textContent=error.message||'숫자를 읽지 못했습니다. 아래에 직접 입력해 주세요.';}
+          editor(kind);onChange();
+        }catch(error){if(token===tokens[kind]){state[kind]=null;editor(kind);message.textContent=error.message;onChange();}}
+      })();pending.add(job);try{await job;}finally{pending.delete(job);}
+    });
+    slot.querySelector('.ev-remove').addEventListener('click',()=>{if(locked)return;tokens[kind]++;state[kind]=null;input.value='';editor(kind);message.textContent='증빙을 삭제했습니다.';onChange();});
+    slot.addEventListener('change',event=>{
+      if(locked||!state[kind])return;const proof=state[kind],target=event.target;
+      if(target.matches('.ev-date-input')){proof.date=target.value;onChange();return;}
+      const row=target.closest('[data-field]');if(!row)return;const field=proof.fields[Number(row.dataset.field)];
+      if(target.matches('.ev-key'))field.key=target.value.replace(/\D/g,'');
+      if(target.matches('.ev-value')){field.value=evidenceNumber(target.value);field.confirmed=false;field.confidence=0;row.querySelector('.ev-confirm').checked=false;}
+      if(target.matches('.ev-confirm'))field.confirmed=target.checked;
+      onChange();
+    });
+    slot.addEventListener('click',event=>{if(!locked&&event.target.matches('.ev-add')&&state[kind]){state[kind].fields.push({key:'',label:'추가 계좌',value:null,confidence:0,confirmed:false});editor(kind);onChange();}});
+  }
+  return{
+    getProofs:()=>structuredClone(Object.values(state).filter(Boolean)),
+    isPending:()=>pending.size>0,
+    setLocked:value=>{locked=value;host.querySelectorAll('input,button').forEach(el=>el.disabled=value);}
+  };
+}
+
 // Calendar windows are anchored to the report end, never to a point count.
 function historyForPeriod(history,end,years=1){
  const last=new Date(end+'T00:00:00Z');
@@ -119,7 +318,7 @@ function makePrintPages(report){
  const pdate=new Date(Date.parse(report.start+'T00:00:00Z')-86400000).toISOString().slice(0,10);
  const page3=`<section class="treasury-page">${header('· 주식보유 현황 및 변동')}<table class="p-table p-stocks"><thead><tr><th>종목</th><th>증권사</th><th>보유주식수</th><th>전주 환산주가</th><th>금주 주가</th><th>등락률</th><th>이전주 총액</th><th>금주 총액</th><th>차액</th></tr></thead><tbody>${stocks.map(s=>{const previous=s.previous/s.quantity;return`<tr><th>${pEscape(s.name)}</th><td>${pEscape(s.broker)}</td><td>${pNumber(s.quantity)}</td><td>${pNumber(previous)}</td><td class="p-bold">${pNumber(s.price)}</td><td class="${pClass(s.change)}">${pPercent(s.current,s.previous)}</td><td>${pNumber(s.previous)}</td><td>${pNumber(s.current)}</td><td class="${pClass(s.change)}">${pChange(s.change)}</td></tr>`;}).join('')}<tr class="p-subtotal"><th colspan="6">주식 평가액 소계</th><td>${pNumber(stockPrevious)}</td><td>${pNumber(stockCurrent)}</td><td class="${pClass(stockCurrent-stockPrevious)}">${pChange(stockCurrent-stockPrevious)}</td></tr>${deposit.map(s=>`<tr><th>${pEscape(s.name)} 예수금</th><td colspan="5">증권계좌 예수금</td><td>${pNumber(s.previous)}</td><td>${pNumber(s.current)}</td><td>${pChange(s.change)}</td></tr>`).join('')}<tr class="p-grand"><th colspan="6">주식 및 증권계좌 합계</th><td>${pNumber(sums.stocks.previous)}</td><td>${pNumber(sums.stocks.current)}</td><td>${pChange(sums.stocks.change)}</td></tr></tbody></table><p class="p-note">전주 환산주가 = 이전주 평가금액 ÷ 금주 보유주식수. 과거 종목별 주가 자료는 원본에 포함되어 있지 않습니다.</p><h2>종목별 주가 비교 <small>전주 환산주가·금주 주가 기준</small></h2><div class="p-stock-charts">${stocks.map(s=>`<div class="p-stock-chart"><div><strong>${pEscape(s.name)}</strong><span>${pNumber(s.price)}원 · ${pPercent(s.current,s.previous)}</span></div>${pLine([{date:pdate,price:s.previous/s.quantity},{date:report.end,price:s.price}],{key:'price',label:s.name,width:345,height:135,color:'#cc852c',unit:1})}</div>`).join('')}</div><h2>주간 자산 증감 요인 <small><span class="p-legend-blue">원화 현금·예금</span> <span class="p-legend-teal">외화</span> <span class="p-legend-orange">주식·증권</span></small></h2>${pBars(hist)}${footer(3)}</section>`;
  const daily=`<section class="treasury-page treasury-daily-page">${header('· 일일자금일보')}<p class="p-daily-units">원화: 원 · 외화: EUR / GBP</p>${renderDailyLedger(report.dailyLedger)}${footer('일일내역')}</section>`;
- return page1+page2+page3+daily;
+ return page1+page2+page3+daily+(report.evidence?.proofs?.length?`<section class="treasury-page treasury-evidence-page">${evidencePageHTML(report)}</section>`:'');
 }
 function installReportPrint(root,report){
  const paper=document.createElement('div');paper.className='treasury-print-root';paper.hidden=true;paper.innerHTML=makePrintPages(report);document.body.append(paper);
@@ -156,9 +355,10 @@ function renderReport(root,report){
  ${report.subtotal.map(s=>`<tr class="subtotal ${s.label.includes('합계')?'total-row':''}"><th colspan="3">${e(s.label)}</th><td class="numeric">${amount(s.previous,s.currency)}</td><td class="numeric">${s.in===null?'—':amount(s.in,s.currency)}</td><td class="numeric">${s.out===null?'—':amount(s.out,s.currency)}</td><td class="numeric balance">${s.key?`<button class="chart-button" data-chart="${s.key}" aria-label="${e(s.label)} 추이" aria-haspopup="dialog">${amount(s.current,s.currency)}<span class="mini-tag">추이</span></button>`:amount(s.current,s.currency)}</td><td>${s.currency==='KRW'?'원':s.currency}</td></tr>`).join('')}</tbody></table></div></section>
  <section class="report-section"><div class="section-title"><h2>주식보유 현황</h2><span>단위: 주, 원</span></div><div class="table-scroll"><table><thead><tr><th>구분</th><th>증권사</th><th>보유주식수</th><th>주당 가격</th><th>이전주 총액</th><th>금주 총액</th><th>차액</th><th>비고</th></tr></thead><tbody>${report.stocks.map(s=>`<tr><td>${e(s.name)}</td><td>${e(s.broker)}</td><td class="numeric">${amount(s.quantity)}</td><td class="numeric">${amount(s.price)}</td><td class="numeric">${amount(s.previous)}</td><td class="numeric balance">${amount(s.current)}</td><td class="numeric ${color(s.change)}">${signed(s.change)}</td><td class="notes">${e(s.note)}</td></tr>`).join('')}<tr class="total-row"><th colspan="4">합계</th><td class="numeric">${amount(report.stockTotal.previous)}</td><td class="numeric"><button class="chart-button" data-chart="stocks" aria-label="주식 총액 추이" aria-haspopup="dialog">${amount(report.stockTotal.current)}<span class="mini-tag">추이</span></button></td><td class="numeric ${color(report.stockTotal.change)}">${signed(report.stockTotal.change)}</td><td></td></tr></tbody></table></div></section>
  <section class="report-section summary-section"><div class="section-title"><h2>자금 총액비교 현황</h2><span>단위: 원</span></div><div class="table-scroll"><table class="summary-table"><thead><tr><th>구분</th><th>이전주</th><th>금주</th><th>차액</th></tr></thead><tbody>${report.summary.map(s=>`<tr class="${s.key==='assets'?'grand-total':''}"><th>${e(s.label)}</th><td class="numeric">${amount(s.previous)}</td><td class="numeric"><button class="chart-button" data-chart="${s.key}" aria-label="${e(s.label)} 추이" aria-haspopup="dialog">${amount(s.current)}<span class="mini-tag">추이</span></button></td><td class="numeric ${color(s.change)}">${signed(s.change)}</td></tr>`).join('')}</tbody></table></div></section>
- <footer class="report-footer"><span>입출금 설명: ${e(report.source.daily||'일일내역 미연결')} · 추이: ${e(report.source.graph||'주간 비교')}</span><span>${e(report.privacy)}</span></footer>
+ <footer class="report-footer"><span>입출금 설명: ${e(report.source.daily||'일일내역 미연결')} · 추이: ${e(report.source.graph||'주간 비교')}<a class="evidence-link" href="#evidence">증빙보기</a></span><span>${e(report.privacy)}</span></footer>
  </article><aside class="report-popover" role="dialog" aria-label="보고서 상세" hidden><div class="popover-bar"><span class="popover-kind"></span><button class="popover-close" aria-label="상세 닫기">×</button></div><div class="popover-content"></div><p class="popover-hint">클릭하면 고정 · Esc로 닫기</p></aside>`;
  const paperCleanup=installReportPrint(root,report);
+ const evidenceCleanup=installEvidenceView(root,report);
  const pop=root.querySelector('.report-popover'),body=pop.querySelector('.popover-content');
  function hide(){pop.hidden=true;pinned=false;anchor?.setAttribute('aria-expanded','false');anchor=null;clearTimeout(timer);}
  function place(){if(!anchor||pop.hidden)return;const rect=anchor.getBoundingClientRect(),width=Math.min(470,innerWidth-24);pop.style.width=width+'px';const height=pop.offsetHeight;let left=Math.max(12,Math.min(rect.left,innerWidth-width-12)),top=rect.bottom+8;if(top+height>innerHeight-12)top=Math.max(12,rect.top-height-8);pop.style.left=left+'px';pop.style.top=top+'px';pop.style.maxHeight=Math.max(180,innerHeight-24)+'px';}
@@ -178,7 +378,7 @@ function renderReport(root,report){
  pop.querySelector('.popover-close').addEventListener('click',hide);
  listen('keydown',event=>{if(event.key==='Escape')hide();});
  listen('scroll',place,{capture:true});window.addEventListener('resize',place);window.addEventListener('scroll',place,{passive:true});
- return ()=>{paperCleanup();hide();controller.abort();window.removeEventListener('resize',place);window.removeEventListener('scroll',place);};
+ return ()=>{evidenceCleanup();paperCleanup();hide();controller.abort();window.removeEventListener('resize',place);window.removeEventListener('scroll',place);};
 }
 function chart(points,label){
  if(points.length<2)return'<p class="empty-chart">추이를 표시하려면 두 시점 이상의 데이터가 필요합니다.</p>';
@@ -380,3 +580,4 @@ const reportData={"version":1,"title":"주간 자금현황","company":"모비스
 mountReportHistory(document.getElementById('report'),reportData,renderReport);
 })();
 </script></body></html>
+
