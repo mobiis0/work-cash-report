@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const strip=s=>s.replace(/^import .*?;\s*/gm,'').replace(/^export /gm,'');
+const context={console,Intl};vm.createContext(context);
+vm.runInContext(strip(fs.readFileSync('report-builder/print-report.js','utf8'))+'\n'+strip(fs.readFileSync('report-builder/report-data.js','utf8'))+'\nglobalThis.dailyAPI={inspectWorkbook,selectDailySheet,parseDailyLedger,buildReport,makePrintPages};',context);
+const api=context.dailyAPI,period={start:'2026-10-17',end:'2026-10-23'};
+const sheet=(name,cells)=>({name,cells:new Map(Object.entries(cells)),value:ref=>cells[ref]??null,mergedRanges:[]});
+let sheets=[sheet('23',{B1:'자 금 일 보',B7:'2026-10-17 ~ 18',B8:'입금',C8:'내용',E8:'우리은행',K8:'합계',C9:'거래처',D9:'매출대금 입금',E9:100,K9:100}),sheet('1017-23',{B1:'주간 자금현황',B2:'2026.10.17 ~ 2026.10.23'})];
+let model={sheetNames:sheets.map(s=>s.name),reports:[period]};
+context.inspectExcelWorkbook=async()=>model;context.readWorkbookSheet=async(_,name)=>sheets.find(s=>s.name===name);
+await api.inspectWorkbook(new ArrayBuffer(0));
+assert.equal(model.dailySheets.length,1);assert.equal(api.selectDailySheet(model,period),'23');
+assert.equal(api.selectDailySheet(model,{start:'2026-10-24',end:'2026-10-30'}),'','do not select stale daily periods');
+const renamed={dailySheets:model.dailySheets.map(s=>({...s,name:'자금 상세'}))};assert.equal(api.selectDailySheet(renamed,period),'자금 상세','names do not determine detection');
+if(process.argv[2]){
+ const raw=JSON.parse(fs.readFileSync(process.argv[2]));sheets=raw.map(s=>({...sheet(s.name,s.cells),mergedRanges:s.mergedRanges}));
+ const source={...period,name:'1017-23',ready:true,value:sheets.find(s=>s.name==='1017-23').value};model={sheetNames:sheets.map(s=>s.name),reports:[source]};
+ await api.inspectWorkbook(new ArrayBuffer(0));const selected=api.selectDailySheet(model,source);assert.equal(selected,'23');
+ const report=await api.buildReport(model,source,{dailySheet:selected});
+ assert.equal(report.dailyLedger.days.length,6);
+ const kb=report.rows.find(r=>r.bank==='국민은행'&&r.type==='보통_출금');
+ assert.equal(kb.details.out.matched,true);assert.equal(kb.details.out.total,352182594);assert.equal(kb.details.out.count,17);assert(kb.details.out.items[0].label.includes('급여'));
+ assert.equal(kb.details.in.matched,true);assert.equal(kb.details.in.total,1735512);
+ const woori=report.rows.find(r=>r.bank==='우리은행'&&r.currency==='KRW');assert.equal(woori.details.in.matched,true);assert.equal(woori.details.in.total,124773000);assert(woori.details.in.items[0].label.includes('네오텍'));
+ report.evidence={proofs:[{kind:'nh',fileName:'PROOF_MUST_STAY_OUT_OF_PRINT.png',image:'data:image/png;base64,cHJvb2Y=',fields:[]}]};
+ const pages=api.makePrintPages(report);assert(!pages.includes('증빙 대조'));assert(!pages.includes('PROOF_MUST_STAY_OUT_OF_PRINT'));assert(!pages.includes('treasury-evidence-page'));assert(pages.includes('일일자금일보'));assert(pages.includes('네오텍'));
+ console.log('PASS: uploaded workbook, numeric daily sheet, 6 date sections, 19 transactions, all 3 active bank directions reconcile, evidence excluded from print');
+}
+assert(fs.readFileSync('report-builder/evidence.css','utf8').includes('.evidence-view,.evidence-page,.ev-image-dialog{display:none!important}'));
+console.log('PASS: daily detection by content, renamed and out-of-period sheets, evidence print exclusion');
