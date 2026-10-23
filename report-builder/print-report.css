@@ -13,4 +13,3 @@
 .treasury-page .p-account-inactive{background:#fafbfd;color:#748094}
 .treasury-page .p-account-inactive .p-bold{font-weight:400}
 
-.treasury-print-root .treasury-evidence-page{height:auto;min-height:189mm;break-before:page;page-break-before:always}.treasury-evidence-page .evidence-page{border:0;border-radius:0;box-shadow:none;padding:5mm 0}.treasury-evidence-page .evidence-comparison{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}.treasury-evidence-page .evidence-table{min-width:0}.treasury-evidence-page .evidence-card{break-inside:avoid}.treasury-evidence-page .evidence-back{display:none}
