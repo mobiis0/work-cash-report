@@ -1,5 +1,6 @@
 {
   "version": 1,
+  "rendererHash": "14fb27ac3867b9e57e0e2d2d814721fa17b9da892fe94db0ec733ac335bc4d31",
   "reports": [
     {
       "id": "2026-10-17_2026-10-23",
@@ -29,6 +30,5 @@
       "path": "archive/2026-09-24_2026-10-02.json",
       "updatedAt": "2026-10-02T08:26:24.484Z"
     }
-  ],
-  "rendererHash": "14fb27ac3867b9e57e0e2d2d814721fa17b9da892fe94db0ec733ac335bc4d31"
+  ]
 }
