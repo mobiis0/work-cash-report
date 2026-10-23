@@ -1,6 +1,20 @@
-import {historyForPeriod} from './print-report.js?v=20261002-8';
-import {inspectWorkbook,readWorkbookSheet} from '../excel.js?v=20261002-5';
-export {inspectWorkbook};
+import {historyForPeriod} from './print-report.js?v=20261023-6';
+import {inspectWorkbook as inspectExcelWorkbook,readWorkbookSheet} from '../excel.js?v=20261002-5';
+export async function inspectWorkbook(buffer){
+ const model=await inspectExcelWorkbook(buffer);
+ const sheets=await Promise.all(model.sheetNames.map(name=>readWorkbookSheet(model,name)));
+ model.dailySheets=sheets.map(sheet=>{
+  const ledger=parseDailyLedger(sheet,{start:'1900-01-01',end:'9999-12-31'});
+  const days=ledger.days.filter(day=>day.columns.some(column=>!column.total));
+  return{name:sheet.name,periods:days.map(({start,end})=>({start,end}))};
+ }).filter(sheet=>sheet.periods.length);
+ return model;
+}
+export function selectDailySheet(model,report){
+ const candidates=(model.dailySheets||[]).map(sheet=>({...sheet,overlap:sheet.periods.filter(day=>day.end>=report.start&&day.start<=report.end).length})).filter(sheet=>sheet.overlap);
+ candidates.sort((a,b)=>b.overlap-a.overlap||Number(b.name===String(+report.end.slice(8)))-Number(a.name===String(+report.end.slice(8)))||a.name.localeCompare(b.name));
+ return candidates[0]?.name||'';
+}
 const compact=v=>String(v??'').replace(/\s/g,'');
 const num=v=>typeof v==='number'&&Number.isFinite(v)?v:null;
 const number=(v,fallback=0)=>num(v)??fallback;
