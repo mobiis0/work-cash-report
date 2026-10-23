@@ -12,7 +12,7 @@ export function evidencePageHTML(report){
   </section>`;
 }
 export function installEvidenceView(root,report){
-  const page=document.createElement('div');page.id='evidence';page.innerHTML=evidencePageHTML(report);root.append(page);
+  const page=document.createElement('div');page.id='evidence';page.className='evidence-view';page.hidden=true;page.innerHTML=evidencePageHTML(report);root.append(page);
   const documentView=root.querySelector('.cash-document'),toolbar=root.querySelector('.treasury-toolbar');
   const update=()=>{const show=location.hash==='#evidence';page.hidden=!show;documentView.hidden=show;if(toolbar)toolbar.hidden=show;if(show)page.scrollIntoView({block:'start'});};
   const dialog=document.createElement('dialog');dialog.className='ev-image-dialog';
