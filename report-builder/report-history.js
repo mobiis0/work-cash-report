@@ -1,4 +1,19 @@
+export async function reportRuntimeHash(script){
+  const match=/\bconst\s+reportData\s*=\s*(?=\{)/.exec(script);
+  if(!match||!globalThis.crypto?.subtle)return '';
+  const bytes=new TextEncoder().encode(script.slice(0,match.index));
+  return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),n=>n.toString(16).padStart(2,'0')).join('');
+}
+export function reportRendererURL(remoteHash,localHash,href){
+  if(!/^[a-f0-9]{64}$/.test(remoteHash||'')||!localHash||remoteHash===localHash)return null;
+  const url=new URL(href);
+  if(url.hostname!=='mobiis0.github.io'||!url.pathname.endsWith('/reports/latest/'))return null;
+  if(url.searchParams.get('renderer')===remoteHash)return null;
+  url.searchParams.set('renderer',remoteHash);
+  return url.href;
+}
 export function mountReportHistory(root, latestReport, render) {
+  const localRuntimeHash=reportRuntimeHash(document.currentScript?.textContent||'');
   const idOf = data => `${data.start}_${data.end}`;
   const period = data => `${data.start.replaceAll('-', '.')} ~ ${data.end.replaceAll('-', '.')}`;
   const validEntry = entry => entry && /^\d{4}-\d{2}-\d{2}$/.test(entry.start) &&
@@ -116,6 +131,8 @@ export function mountReportHistory(root, latestReport, render) {
       if (disposed) return;
       if (!Array.isArray(index.reports) || !index.reports.length || !index.reports.every(validEntry))
         throw new Error('목록이 없습니다.');
+      const rendererURL=reportRendererURL(index.rendererHash,await localRuntimeHash,location.href);
+      if(rendererURL){location.replace(rendererURL);return;}
       const unique = new Map(index.reports.map(entry => [entry.id, entry]));
       // The new HTML can arrive just before the archive workflow completes.
       if (!unique.has(idOf(latestReport))) unique.set(idOf(latestReport), {

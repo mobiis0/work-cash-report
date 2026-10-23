@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Keep the last published data for every reporting period, including Git history."""
+import hashlib
 import datetime
 import json
 import re
@@ -63,7 +64,11 @@ def archive(root):
         )
         entries.append({'id': report_id, 'start': start, 'end': end,
                         'path': f'archive/{report_id}.json', 'updatedAt': data.get('updatedAt', '')})
-    index = {'version': 1, 'reports': entries}
+    html=(root / SOURCE).read_text(encoding='utf-8')
+    script=next((part.split('</script>',1)[0] for part in html.split('<script>')[1:] if re.search(r'\bconst\s+reportData\s*=\s*(?=\{)',part)), '')
+    marker=re.search(r'\bconst\s+reportData\s*=\s*(?=\{)',script)
+    renderer_hash=hashlib.sha256(script[:marker.start()].encode('utf-8')).hexdigest() if marker else ''
+    index = {'version': 1, 'rendererHash': renderer_hash, 'reports': entries}
     (root / 'reports/history.json').write_text(
         json.dumps(index, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'
     )
@@ -72,3 +77,4 @@ def archive(root):
 
 if __name__ == '__main__':
     archive(Path.cwd())
+
