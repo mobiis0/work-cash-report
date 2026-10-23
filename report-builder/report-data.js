@@ -69,8 +69,7 @@ export function ledgerTransactions(ledger){
 }
 export async function dailyTransactions(model,sheetName,report){return ledgerTransactions(await readDailyLedger(model,sheetName,report));}
 function transactionLabel(t){
- // Only customer/company names from sales receipts are published. Individual payee names stay in the workbook.
- if(t.direction==='in'&&/매출|대금입금|대금 입금/.test(t.description))return `${t.counterparty} · ${t.description}`;
+
  return t.description||(/이자/.test(t.counterparty)?'결산이자':'기타 거래');
 }
 function narrative(top,direction){
@@ -92,7 +91,7 @@ function attachTransactions(rows,transactions,warnings){
   const active=rows.filter(r=>r.currency===row.currency&&(row.currency!=='KRW'||bank(r.bank)===bank(row.bank))&&r[direction]>0);
   const sum=pool.reduce((s,t)=>s+t.amount,0),matched=active.length===1&&Math.abs(sum-amount)<.02;
   const top=pool.sort((a,b)=>b.amount-a.amount).slice(0,3);
-  row.details??={};row.details[direction]={message:pool.length?(matched?'':'은행별 주요 거래: ')+narrative(top,direction):'해당 기간의 주요 거래내역이 없습니다.',matched,total:sum,scope:matched?'주간 금액과 일일내역 합계 일치':pool.length?'은행별 주요 거래':'일일내역 미연결',items:top.map(t=>({label:transactionLabel(t),amount:t.amount,date:t.dateLabel,source:t.source})),count:pool.length};
+  row.details??={};row.details[direction]={message:pool.length?(matched?'':'은행별 주요 거래: ')+narrative(top,direction):'해당 기간의 주요 거래내역이 없습니다.',matched,total:sum,scope:matched?'주간 금액과 일일내역 합계 일치':pool.length?'은행별 주요 거래':'일일내역 미연결',items:top.map(t=>({label:transactionLabel(t),counterparty:t.counterparty,amount:t.amount,date:t.dateLabel,source:t.source})),count:pool.length};
   if(!matched)warnings.push(`${row.bank} ${row.type} ${direction==='in'?'입금':'출금'}: 일일내역과 계좌 연결을 확인하세요.`);
  }
 }
