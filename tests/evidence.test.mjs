@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {compareEvidence,evidenceNumber,parseEvidenceOCR} from '../report-builder/evidence-data.js';
-import {evidencePageHTML} from '../report-builder/evidence.js';
+import {evidencePageHTML,pastedEvidenceImage} from '../report-builder/evidence.js';
 const report={start:'2026-10-17',end:'2026-10-23',rows:[{bank:'기업은행',type:'보통',account:'•••• 1001',currency:'KRW',current:0}],stocks:[{name:'현대차',quantity:2,price:10,current:20,broker:'NH투자증권'},{name:'모비스',quantity:30,price:99,current:2970,broker:'NH투자증권'},{name:'휴네시온',quantity:400,price:1,current:400,broker:'NH투자증권'},{name:'',quantity:null,current:5000,broker:'NH투자증권'},{name:'모비스4CB',quantity:123456,current:99999,broker:'NH투자증권'}]};
 const field=(key,value,confirmed=true)=>({key,value,confirmed,label:key});
 let proof={kind:'nh',date:report.end,fields:[field('005380',2),field('250060',30),field('290270',400),field('deposit',5000)]};
@@ -29,3 +29,11 @@ const code=removeExports(get('evidence-data.js'))+'\n'+bundle(get('evidence.js')
 new vm.Script('(()=>{'+code+'\n})();');
 assert(code.includes('installEvidenceView'));assert(code.includes('treasury-evidence-page'));
 console.log('PASS: 4 NH fields, bond/valuation exclusion, bank zero/missing/duplicate matching, confidence/date checks, XSS/image guard, OCR missing columns, standalone bundle syntax.');
+
+const clipboardFile=new File([new Uint8Array([1,2,3])],'image.png',{type:'image/png'});
+const pasted=pastedEvidenceImage({items:[{kind:'string',type:'text/html'},{kind:'file',type:'image/png',getAsFile:()=>clipboardFile}]},'nh',12345);
+assert.equal(pasted.name,'NH-증빙-붙여넣기-12345.png');assert.equal(pasted.type,'image/png');assert.equal(pasted.size,3);
+assert.equal(pastedEvidenceImage({items:[{kind:'string',type:'text/plain'}]},'bank'),null);
+assert.equal(pastedEvidenceImage({files:[new File(['x'],'x.svg',{type:'image/svg+xml'})]},'bank'),null);
+assert.equal(pastedEvidenceImage({files:[clipboardFile]},'bank',1).name,'은행-증빙-붙여넣기-1.png');
+console.log('PASS: clipboard images, HTML plus image clipboard, files fallback, text paste passthrough, unsupported images.');

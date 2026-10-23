@@ -60,9 +60,17 @@ async function prepareEvidenceFile(file){
   ocr.width=Math.round(canvas.width*upscale);ocr.height=Math.round(canvas.height*upscale);ocr.getContext('2d').drawImage(canvas,0,0,ocr.width,ocr.height);
   return{image,ocr:ocr.toDataURL('image/png'),width:ocr.width,height:ocr.height};
 }
+export function pastedEvidenceImage(clipboardData,kind,now=Date.now()){
+  const items=Array.from(clipboardData?.items||[]);
+  const item=items.find(item=>item.kind==='file'&&/^image\/(png|jpeg|webp)$/.test(item.type));
+  const file=item?.getAsFile()||Array.from(clipboardData?.files||[]).find(file=>/^image\/(png|jpeg|webp)$/.test(file.type));
+  if(!file)return null;
+  const extension=file.type==='image/jpeg'?'jpg':file.type==='image/webp'?'webp':'png';
+  return new File([file],`${kind==='bank'?'은행':'NH'}-증빙-붙여넣기-${now}.${extension}`,{type:file.type,lastModified:now});
+}
 export function mountEvidenceAttachments(host,onChange){
   const state={bank:null,nh:null},tokens={bank:0,nh:0},pending=new Set();let locked=false;
-  host.innerHTML=`<div class="evidence-upload-heading"><h2>증빙 첨부 <small>선택 사항 · 이미지 2개</small></h2><p>은행 잔액 화면과 NH투자증권 잔고 화면을 함께 첨부하면 증빙 대조 페이지가 생성됩니다.</p></div>${['bank','nh'].map(kind=>`<section class="evidence-upload-slot" data-kind="${kind}"><div class="evidence-upload-label"><strong>${kind==='bank'?'은행 잔액 증빙':'NH투자증권 증빙'}</strong><button type="button" class="ev-remove" hidden>첨부 삭제</button></div><input type="file" accept="image/png,image/jpeg,image/webp" aria-label="${kind==='bank'?'은행 잔액':'NH투자증권'} 증빙 이미지"><p class="ev-upload-status" role="status">${kind==='bank'?'계좌별 잔액을 대조합니다.':'현대차·모비스·휴네시온 보유 주식수와 예수금만 대조합니다.'}</p><div class="ev-review"></div></section>`).join('')}<p class="evidence-note">처음 첨부할 때 숫자 인식 도구를 내려받습니다. 이미지는 브라우저에서 처리합니다. 기준일과 읽은 숫자를 확인한 뒤 보고서를 생성해 주세요.</p>`;
+  host.innerHTML=`<div class="evidence-upload-heading"><h2>증빙 첨부 <small>선택 사항 · 이미지 2개</small></h2><p>은행 잔액 화면과 NH투자증권 잔고 화면을 함께 첨부하면 증빙 대조 페이지가 생성됩니다.</p></div>${['bank','nh'].map(kind=>`<section class="evidence-upload-slot" data-kind="${kind}"><div class="evidence-upload-label"><strong>${kind==='bank'?'은행 잔액 증빙':'NH투자증권 증빙'}</strong><button type="button" class="ev-remove" hidden>첨부 삭제</button></div><button type="button" class="ev-paste-target" aria-label="${kind==='bank'?'은행 잔액':'NH투자증권'} 증빙 붙여넣기"><strong>캡처 이미지 붙여넣기</strong><span>이곳을 클릭한 뒤 Ctrl+V · Mac은 ⌘V</span></button><input type="file" accept="image/png,image/jpeg,image/webp" aria-label="${kind==='bank'?'은행 잔액':'NH투자증권'} 증빙 이미지"><p class="ev-upload-status" role="status">${kind==='bank'?'계좌별 잔액을 대조합니다.':'현대차·모비스·휴네시온 보유 주식수와 예수금만 대조합니다.'}</p><div class="ev-review"></div></section>`).join('')}<p class="evidence-note">처음 첨부할 때 숫자 인식 도구를 내려받습니다. 이미지는 브라우저에서 처리합니다. 기준일과 읽은 숫자를 확인한 뒤 보고서를 생성해 주세요.</p>`;
   function editor(kind){
     const slot=host.querySelector(`[data-kind="${kind}"]`),proof=state[kind],area=slot.querySelector('.ev-review');
     slot.querySelector('.ev-remove').hidden=!proof;
@@ -71,8 +79,8 @@ export function mountEvidenceAttachments(host,onChange){
   }
   for(const kind of ['bank','nh']){
     const slot=host.querySelector(`[data-kind="${kind}"]`),input=slot.querySelector('input[type="file"]'),message=slot.querySelector('.ev-upload-status');
-    input.addEventListener('change',async()=>{
-      if(locked||!input.files[0])return;const file=input.files[0],token=++tokens[kind];onChange();
+    async function loadEvidence(file){
+      if(locked||!file)return;const token=++tokens[kind];onChange();
       const job=(async()=>{
         try{
           message.textContent='이미지를 준비하는 중입니다.';const prepared=await prepareEvidenceFile(file);if(token!==tokens[kind])return;
@@ -84,6 +92,13 @@ export function mountEvidenceAttachments(host,onChange){
           editor(kind);onChange();
         }catch(error){if(token===tokens[kind]){state[kind]=null;editor(kind);message.textContent=error.message;onChange();}}
       })();pending.add(job);try{await job;}finally{pending.delete(job);}
+    }
+    input.addEventListener('change',()=>loadEvidence(input.files[0]));
+    slot.addEventListener('paste',event=>{
+      if(locked)return;
+      const file=pastedEvidenceImage(event.clipboardData,kind);
+      if(!file){if(event.target.closest('.ev-paste-target'))message.textContent='클립보드에 이미지가 없습니다. 화면을 캡처한 뒤 Ctrl+V로 붙여넣어 주세요.';return;}
+      event.preventDefault();input.value='';loadEvidence(file);
     });
     slot.querySelector('.ev-remove').addEventListener('click',()=>{if(locked)return;tokens[kind]++;state[kind]=null;input.value='';editor(kind);message.textContent='증빙을 삭제했습니다.';onChange();});
     slot.addEventListener('change',event=>{

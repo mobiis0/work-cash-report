@@ -1,5 +1,5 @@
-import {installEvidenceView} from './evidence.js?v=20261023-3';
-import {installReportPrint,historyForPeriod} from './print-report.js?v=20261023-3';
+import {installEvidenceView} from './evidence.js?v=20261023-4';
+import {installReportPrint,historyForPeriod} from './print-report.js?v=20261023-4';
 const escapeText=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nf=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0});
 const decimal=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:2});
