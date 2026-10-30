@@ -1,3 +1,4 @@
+import {mountMaturityNotices} from './maturity-notices.mjs?v=20261030-1';
 import {mountEvidenceAttachments} from './evidence.js?v=20261023-6';
 import {loadPublishedReports,mergePublishedHistory} from './history-source.js?v=20261008-4';
 import {inspectWorkbook,selectDailySheet,buildReport,validateReport} from './report-data.js?v=20261023-7';
@@ -5,6 +6,7 @@ import {renderReport} from './viewer.js?v=20261023-7';
 const $=id=>document.getElementById(id);
 let model=null,fileName='',report=null,resultURL=null,siteHTML='',cleanup=null,busy=false,loadId=0;
 const controls=['weekly','daily','graph'];
+const maturityNotices=mountMaturityNotices();
 function status(message,type=''){const s=$('status');s.textContent=message;s.className='builder-status'+(type?' '+type:'');}
 function clearResult(){cleanup?.();cleanup=null;report=null;siteHTML='';if(resultURL)URL.revokeObjectURL(resultURL);resultURL=null;$('result-controls').hidden=true;$('preview-section').hidden=true;$('site-content').value='';$('download').removeAttribute('href');$('preview').replaceChildren();}
 const evidenceInput=mountEvidenceAttachments($('evidence-inputs'),()=>{clearResult();},()=>selectedSource()?.end||'');
@@ -12,7 +14,7 @@ function selectedSource(){return model?.reports.find(s=>s.name===$('weekly').val
 function readinessMessage(){const source=selectedSource();if(!source)return '주간 시트를 선택하세요.';if(source.ready)return '보고기간과 시트를 확인한 뒤 보고서 사이트를 생성하세요.';return `${source.name} 시트의 계산 결과가 비어 있어 생성할 수 없습니다. 누락된 셀: ${source.missing.join(', ')}. 엑셀에서 해당 셀과 계산 수식을 확인하고 저장한 뒤 다시 업로드하세요.`;}
 function showReadiness(){const source=selectedSource();status(readinessMessage(),source&&!source.ready?'error':'');}
 function populate(select,names,empty=false){select.replaceChildren();if(empty)select.add(new Option('사용하지 않음',''));for(const name of names)select.add(new Option(name,name));select.disabled=busy||!model;}
-function syncSources(){const source=selectedSource();if(!source)return;const day=source.end.slice(8),daily=(model.dailySheets||[]).map(sheet=>sheet.name),graphs=model.sheetNames.filter(n=>/그래프/.test(n));populate($('daily'),daily,true);populate($('graph'),graphs,true);$('daily').value=selectDailySheet(model,source);$('graph').value=graphs.find(n=>(n===day+'그래프'||n===String(+day)+'그래프'))||graphs.at(-1)||'';$('period-info').textContent=`보고기간 ${source.start.replaceAll('-','.')} ~ ${source.end.replaceAll('-','.')}`;$('build').disabled=!source.ready||busy;}
+function syncSources(){const source=selectedSource();if(!source)return;maturityNotices.updateFromSheet(source);const day=source.end.slice(8),daily=(model.dailySheets||[]).map(sheet=>sheet.name),graphs=model.sheetNames.filter(n=>/그래프/.test(n));populate($('daily'),daily,true);populate($('graph'),graphs,true);$('daily').value=selectDailySheet(model,source);$('graph').value=graphs.find(n=>(n===day+'그래프'||n===String(+day)+'그래프'))||graphs.at(-1)||'';$('period-info').textContent=`보고기간 ${source.start.replaceAll('-','.')} ~ ${source.end.replaceAll('-','.')}`;$('build').disabled=!source.ready||busy;}
 async function loadFile(file){const id=++loadId;clearResult();model=null;fileName='';busy=true;$('build').disabled=true;controls.forEach(n=>$(n).disabled=true);
  try{if(!file||!file.name.toLowerCase().endsWith('.xlsx'))throw Error('암호가 없는 .xlsx 파일을 선택하세요.');if(file.size>50*1024*1024)throw Error('파일은 50MB 이하로 선택하세요.');status('엑셀의 주간 표·일일내역·그래프를 확인하고 있습니다.');const parsed=await inspectWorkbook(await file.arrayBuffer());if(id!==loadId)return;model=parsed;fileName=file.name;busy=false;$('file-label').textContent=file.name;populate($('weekly'),model.reports.map(r=>r.name));$('weekly').value=model.reports[0].name;syncSources();showReadiness();}
  catch(error){if(id!==loadId)return;status(error.message,'error');$('file-label').textContent='주간자금일보를 드롭하세요';}
@@ -37,7 +39,3 @@ $('build').addEventListener('click',generate);
 $('copy').addEventListener('click',async()=>{if(!siteHTML)return;try{await navigator.clipboard.writeText(siteHTML);status('게시용 내용을 복사했습니다. GitHub에서 기존 내용을 전체 선택해 교체한 뒤 Commit changes로 저장하세요.','success');}catch{$('site-content').closest('details').open=true;$('site-content').focus();$('site-content').select();status('게시용 내용을 선택했습니다. Ctrl+C로 복사하세요.');}});
 window.addEventListener('beforeunload',()=>{if(resultURL)URL.revokeObjectURL(resultURL);cleanup?.();});
 if(document.modelContext?.registerTool){document.modelContext.registerTool({name:'build_cash_report_site',title:'주간자금일보 사이트 생성',description:'페이지에 선택된 엑셀에서 주간 표, 주요 거래 설명, 추이 그래프가 포함된 독립 보고서 사이트와 미리보기를 생성합니다. GitHub 게시는 하지 않습니다.',inputSchema:{type:'object',properties:{weekly:{type:'string'},daily:{type:'string'},graph:{type:'string'}},additionalProperties:false},execute:async input=>{if(!model)throw Error('먼저 엑셀 파일을 선택하세요.');if(input.weekly){if(!model.reports.some(r=>r.name===input.weekly))throw Error('주간 시트를 확인하세요.');$('weekly').value=input.weekly;syncSources();}for(const key of ['daily','graph'])if(input[key]!==undefined){if(input[key]&&!model.sheetNames.includes(input[key]))throw Error('시트 이름을 확인하세요.');$(key).value=input[key];}await generate();if(!report)throw Error($('status').textContent);return{sheet:report.sheet,start:report.start,end:report.end,accounts:report.rows.length,dailyDays:report.dailyLedger.days.length,dailyEntries:report.dailyLedger.days.reduce((n,d)=>n+d.entries.in.length+d.entries.out.length,0),warnings:report.warnings,generatedHTML:true};}});}
-
-
-
-
