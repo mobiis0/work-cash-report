@@ -1,4 +1,4 @@
-import {mountMaturityNotices} from './maturity-notices.mjs?v=20261030-1';
+import {mountMaturityNotices} from './maturity-notices.mjs?v=20261030-2';
 import {mountEvidenceAttachments} from './evidence.js?v=20261023-6';
 import {loadPublishedReports,mergePublishedHistory} from './history-source.js?v=20261008-4';
 import {inspectWorkbook,selectDailySheet,buildReport,validateReport} from './report-data.js?v=20261023-7';

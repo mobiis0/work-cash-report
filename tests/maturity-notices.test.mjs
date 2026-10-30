@@ -3,7 +3,12 @@ import assert from 'node:assert/strict';
 import {dueNotices,parseMaturity,depositsFromRows,koreaToday} from '../report-builder/maturity-notices.mjs';
 const deposit={bank:'신한은행',type:'예금',account:'207-038-986108',amount:20000000000,maturity:'2026-11-26'};
 test('November first visit and the previous calendar week each notify once',()=>{
- assert.equal(dueNotices([deposit],'2026-10-30').length,0);
+ assert.equal(dueNotices([deposit],'2026-10-29').length,0);
+ assert.equal(dueNotices([deposit],'2026-10-30')[0].title,'11월 안내사항');
+ const early = dueNotices([deposit],'2026-10-30')[0];
+ const earlySeen = Object.fromEntries(early.ackKeys.map(key=>[key,true]));
+ assert.equal(dueNotices([deposit],'2026-11-02',earlySeen).length,0);
+ assert.equal(dueNotices([deposit],'2026-11-20',earlySeen)[0].title,'다음주 안내사항');
  const monthly=dueNotices([deposit],'2026-11-02')[0];
  assert.equal(monthly.title,'11월 안내사항');
  const seen=Object.fromEntries(monthly.ackKeys.map(key=>[key,true]));
@@ -38,4 +43,13 @@ test('maturity notes validate real dates and skip closed accounts',()=>{
  assert.equal(depositsFromRows([{...deposit,note:'2026.11.26 만기',current:20000000000}])[0].amount,20000000000);
  assert.equal(dueNotices([deposit,deposit],'2026-11-01').length,1);
  assert.equal(koreaToday(new Date('2026-10-31T15:01:00Z')),'2026-11-01');
+});
+
+test('month notice starts on the final weekday and handles year rollover',()=>{
+ const jan={...deposit,maturity:'2027-01-26'};
+ assert.equal(dueNotices([jan],'2026-12-30').length,0);
+ assert.equal(dueNotices([jan],'2026-12-31')[0].title,'1월 안내사항');
+ const december={...deposit,maturity:'2026-12-26'};
+ assert.equal(dueNotices([december],'2026-11-29').length,0);
+ assert.equal(dueNotices([december],'2026-11-30')[0].title,'12월 안내사항');
 });

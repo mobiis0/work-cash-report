@@ -32,14 +32,18 @@ export function dueNotices(deposits, today, seen = {}, includeSeen = false) {
   const weekday = (new Date(maturity).getUTCDay()+6)%7;
   const weekStart = maturity - (weekday+7)*DAY;
   const weekly = now >= weekStart && now < weekStart+7*DAY;
-  const monthly = today.slice(0,7) === item.maturity.slice(0,7);
+  // The final weekday before the maturity month is the last reporting day.
+  const monthStart = new Date(item.maturity.slice(0,7)+'-01T00:00:00Z');
+  const noticeStart = new Date(+monthStart-DAY);
+  while ([0,6].includes(noticeStart.getUTCDay())) noticeStart.setUTCDate(noticeStart.getUTCDate()-1);
+  const monthly = now >= +noticeStart && now <= maturity;
   if (!weekly && !monthly) continue;
   const id = identity(item), monthlyKey = id+':month', weeklyKey = id+':week';
   // First arrival during the advance week gets a single, more timely notice.
   const phase = weekly ? 'week' : 'month';
   const key = phase === 'week' ? weeklyKey : monthlyKey;
   if (!includeSeen && seen[key]) continue;
-  unique.set(id,{...item,key,ackKeys:weekly?[monthlyKey,weeklyKey]:[monthlyKey],title:weekly?'다음주 안내사항':`${+today.slice(5,7)}월 안내사항`});
+  unique.set(id,{...item,key,ackKeys:weekly?[monthlyKey,weeklyKey]:[monthlyKey],title:weekly?'다음주 안내사항':`${+item.maturity.slice(5,7)}월 안내사항`});
  }
  return [...unique.values()];
 }
