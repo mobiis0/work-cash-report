@@ -1,4 +1,4 @@
-// Builder-only notices. These are never embedded in generated reports.
+// Embedded in published reports; each visitor acknowledges notices independently.
 const DAY = 86400000;
 const STORE = 'mobiis.cash.maturity.v1';
 const SEEN = 'mobiis.cash.maturity.seen.v1';
@@ -47,7 +47,9 @@ export function dueNotices(deposits, today, seen = {}, includeSeen = false) {
  }
  return [...unique.values()];
 }
-export function mountMaturityNotices() {
+export function mountMaturityNotices(report = null) {
+ const STORE = report ? 'mobiis.cash.report-maturity.v1' : 'mobiis.cash.maturity.v1';
+ const SEEN = report ? 'mobiis.cash.report-maturity.seen.v1' : 'mobiis.cash.maturity.seen.v1';
  let data = seed;
  const cached = read(STORE,null);
  if (cached && /^\d{4}-\d{2}-\d{2}$/.test(cached.end) && Array.isArray(cached.deposits) && cached.end>=data.end) data=cached;
@@ -57,7 +59,7 @@ export function mountMaturityNotices() {
  const popup=document.createElement('aside');popup.className='maturity-popup';popup.hidden=true;popup.setAttribute('role','dialog');popup.setAttribute('aria-label','예금 만기 안내');
  const close=document.createElement('button');close.className='maturity-close';close.type='button';close.textContent='×';close.setAttribute('aria-label','안내 확인 후 닫기');
  const body=document.createElement('div');popup.append(close,body);document.body.append(popup);
- const opener=document.createElement('button');opener.className='maturity-open';opener.type='button';opener.textContent='만기 안내';opener.setAttribute('aria-expanded','false');document.querySelector('.builder-header nav')?.append(opener);
+ const opener=document.createElement('button');opener.className='maturity-open';opener.type='button';opener.textContent='만기 안내';opener.setAttribute('aria-expanded','false');if(report){opener.style.cssText='position:fixed;right:24px;bottom:18px;z-index:1400;background:#fff;border:1px solid #cfdaeb;border-radius:6px;padding:8px 12px';document.body.append(opener);}else document.querySelector('.builder-header nav')?.append(opener);
  let displayed=[];
  function dismiss() {
   const seen=read(SEEN,{});
@@ -96,7 +98,7 @@ export function mountMaturityNotices() {
  }
  // Read only the newest published snapshot, without downloading historical reports.
  async function refresh() {
-  const base=location.hostname==='mobiis0.github.io'?new URL('https://raw.githubusercontent.com/mobiis0/work-cash-report/main/reports/'):new URL('../reports/',import.meta.url);
+  const base=location.hostname==='mobiis0.github.io'?new URL('https://raw.githubusercontent.com/mobiis0/work-cash-report/main/reports/'):new URL(report?'../':'../reports/',location.href);
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),6000);
   try {
    const readJSON=async url=>{const response=await fetch(url,{cache:'no-store',signal:controller.signal});if(!response.ok)throw Error('unavailable');return response.json();};
@@ -106,7 +108,8 @@ export function mountMaturityNotices() {
   } catch { /* Use the last known snapshot when offline. */ }
   finally { clearTimeout(timer);show(); }
  }
- refresh();
+ if(report)update({end:report.end,deposits:depositsFromRows(report.rows)});
+ if(location.protocol!=='file:')refresh();else show();
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')show();});
  return {updateFromSheet(source){
   const rows=[];for(let r=6;r<=23;r++)rows.push({bank:String(source.value(`B${r}`)||''),type:String(source.value(`C${r}`)||''),account:String(source.value(`D${r}`)||''),current:source.value(`H${r}`),note:String(source.value(`I${r}`)||'')});
