@@ -46,18 +46,29 @@ export function parseEvidenceOCR(kind,data,width,height){
   const dates=[...text.matchAll(/(20\d{2})\s*[-./]\s*(\d{1,2})\s*[-./]\s*(\d{1,2})/g)]
     .map(m=>`${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`).sort();
   if(kind==='bank'){
-    for(const line of lines){
+    // Inspect all numeric columns to the right of the account number. ERP
+    // screenshots may contain only the bank group, or bank + ledger groups.
+    const records=lines.map(line=>{
       const account=line.find(w=>/^\d{10,16}$/.test(w.text.replace(/\s/g,'')));
+      const amounts=account?line.filter(w=>w.bbox.x0>account.bbox.x1)
+        .map(w=>({...w,value:evidenceNumber(w.text)})).filter(w=>w.value!==null):[];
+      return{line,account,amounts};
+    });
+    // Complete rows establish the closing column by its right-aligned edge.
+    // Then a missing zero in another column cannot shift an income/expense
+    // or the adjacent ledger balance into the bank closing balance.
+    const tolerance=Math.max(4,width*.012);
+    const anchors=records.filter(r=>r.amounts.length===4||r.amounts.length===8).map(r=>r.amounts[3].bbox.x1);
+    let closingEdge=null,best=0;
+    for(const edge of anchors){const peers=anchors.filter(x=>Math.abs(x-edge)<=tolerance);if(peers.length>best){best=peers.length;closingEdge=peers.reduce((a,b)=>a+b,0)/peers.length;}}
+    for(const {line,account,amounts} of records){
       if(!account){
         const code=line.find(w=>/^\d{5}$/.test(w.text)&&w.bbox.x0<width*.10);
         if(code)fields.push({key:'',label:'계좌 식별 확인 필요 (코드 '+code.text+')',value:null,confidence:0,confirmed:false});
         continue;
       }
-      const amounts=line.filter(w=>w.bbox.x0>account.bbox.x1&&w.bbox.x0<width*.50)
-        .map(w=>({...w,value:evidenceNumber(w.text)})).filter(w=>w.value!==null);
-      // The supplied ERP layout has four columns (opening/in/out/closing) in its left ledger.
-      // Missing cells must not shift another column into the closing balance.
-      const balance=amounts.length===4?amounts[3]:null;
+      const candidates=closingEdge===null?[]:amounts.filter(w=>Math.abs(w.bbox.x1-closingEdge)<=tolerance);
+      const balance=candidates.length===1?candidates[0]:null;
       fields.push({key:account.text.replace(/\D/g,'').slice(-4),label:'계좌 •••• '+account.text.replace(/\D/g,'').slice(-4),
         value:balance?.value??null,confidence:Math.min(account.confidence??0,balance?.confidence??0),confirmed:false});
     }
