@@ -21,6 +21,12 @@ export function dailyDateRange(value){
  const pad=n=>String(n).padStart(2,'0');const start=`${m[1]}-${pad(m[2])}-${pad(m[3])}`,end=m[6]?`${m[4]||m[1]}-${pad(m[5]||m[2])}-${pad(m[6])}`:start;
  return validDate(start)&&validDate(end)&&start<=end?{start,end}:null;
 }
+export function nextFridayAfter(end){
+ if(!validDate(end))throw Error('마지막 보고일을 확인하세요.');
+ const date=new Date(end+'T00:00:00Z');
+ date.setUTCDate(date.getUTCDate()+((5-date.getUTCDay()+7)%7||7));
+ return iso(date);
+}
 export function nextDailyPeriods(start,end){
  if(!validDate(start)||!validDate(end)||start>end)throw Error('일일자금일보의 생성 기간을 확인하세요.');
  const periods=[];

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {dailyDateRange,nextDailyPeriods} from '../daily-rollover.js';
+import {dailyDateRange,nextDailyPeriods,nextFridayAfter} from '../daily-rollover.js';
 test('starts with Saturday and Sunday together, then Monday through Friday',()=>{
  const periods=nextDailyPeriods('2026-11-21','2026-11-27');
  assert.deepEqual(periods.map(p=>[p.start,p.end]),[
@@ -25,4 +25,9 @@ test('recognizes the existing weekend and numeric Excel date headings',()=>{
  assert.deepEqual(dailyDateRange(excel),{start:'2026-11-20',end:'2026-11-20'});
  assert.equal(dailyDateRange('2026-02-30'),null);
  assert.equal(dailyDateRange('당일잔액(가용자금)'),null);
+});
+
+test('suggests next Friday when the uploaded report already ends today',()=>{
+ assert.equal(nextFridayAfter('2026-11-20'),'2026-11-27');
+ assert.equal(nextFridayAfter('2026-12-25'),'2027-01-01');
 });

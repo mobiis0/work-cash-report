@@ -1,3 +1,4 @@
+import {nextFridayAfter} from './daily-rollover.js?v=20261120-1';
 import {inspectWorkbook,generateWorkbook,nextPeriod,todayKST,displayDate,positiveNumber} from './excel.js?v=20261120-1';
 const $=id=>document.getElementById(id);
 let model=null,source=null,fileName='',loading=false,resultURL=null;
@@ -15,13 +16,13 @@ function refresh(){
 }
 async function loadFile(file){
  clearDownload();model=null;source=null;loading=true;$('generate').disabled=true;$('source-settings').hidden=true;$('new-period').textContent='파일 확인 중';$('new-sheet').textContent='';
- try{if(!file||!file.name.toLowerCase().endsWith('.xlsx'))throw Error('.xlsx 엑셀 파일을 선택하세요.');if(file.size>50*1024*1024)throw Error('50MB 이하의 엑셀 파일을 선택하세요.');status('엑셀의 보고기간과 금주 금액을 확인하고 있습니다.');model=await inspectWorkbook(await file.arrayBuffer());fileName=file.name;$('file-label').textContent=file.name;$('source-sheet').replaceChildren();for(const report of model.reports){const option=document.createElement('option');option.value=report.name;option.textContent=report.name+(report.ready?'':' · 미완성');$('source-sheet').appendChild(option);}source=model.reports.find(r=>r.ready)??model.reports[0];$('source-sheet').value=source.name;$('source-period').textContent=`${displayDate(source.start)} ~ ${displayDate(source.end)}`;$('source-settings').hidden=false;}
+ try{if(!file||!file.name.toLowerCase().endsWith('.xlsx'))throw Error('.xlsx 엑셀 파일을 선택하세요.');if(file.size>50*1024*1024)throw Error('50MB 이하의 엑셀 파일을 선택하세요.');status('엑셀의 보고기간과 금주 금액을 확인하고 있습니다.');model=await inspectWorkbook(await file.arrayBuffer());fileName=file.name;$('file-label').textContent=file.name;$('source-sheet').replaceChildren();for(const report of model.reports){const option=document.createElement('option');option.value=report.name;option.textContent=report.name+(report.ready?'':' · 미완성');$('source-sheet').appendChild(option);}source=model.reports.find(r=>r.ready)??model.reports[0];$('source-sheet').value=source.name;if(!$('end-date').value||$('end-date').value<=source.end)$('end-date').value=nextFridayAfter(source.end);$('source-period').textContent=`${displayDate(source.start)} ~ ${displayDate(source.end)}`;$('source-settings').hidden=false;}
  catch(error){status(error.message,'error');$('file-label').textContent='엑셀을 여기에 드롭하세요';$('new-period').textContent='파일 선택 후 표시';}
  finally{loading=false;refresh();}
 }
 $('file-input').addEventListener('change',event=>loadFile(event.target.files[0]));
 const zone=$('drop-zone');for(const type of ['dragenter','dragover'])zone.addEventListener(type,event=>{event.preventDefault();zone.classList.add('drag-over');});for(const type of ['dragleave','drop'])zone.addEventListener(type,event=>{event.preventDefault();zone.classList.remove('drag-over');});zone.addEventListener('drop',event=>{if(event.dataTransfer.files.length!==1){status('엑셀 파일을 하나씩 선택하세요.','error');return;}loadFile(event.dataTransfer.files[0]);});
-$('source-sheet').addEventListener('change',()=>{clearDownload();source=model.reports.find(r=>r.name===$('source-sheet').value);$('source-period').textContent=`${displayDate(source.start)} ~ ${displayDate(source.end)}`;refresh();});
+$('source-sheet').addEventListener('change',()=>{clearDownload();source=model.reports.find(r=>r.name===$('source-sheet').value);if(!$('end-date').value||$('end-date').value<=source.end)$('end-date').value=nextFridayAfter(source.end);$('source-period').textContent=`${displayDate(source.start)} ~ ${displayDate(source.end)}`;refresh();});
 for(const id of ['end-date',...Object.values(fields)])$(id).addEventListener('input',()=>{clearDownload();refresh();});
 for(const id of Object.values(fields))$(id).addEventListener('blur',()=>{try{const n=positiveNumber($(id).value,'입력값');$(id).value=n.toLocaleString('en-US',{maximumFractionDigits:10});}catch{/* Keep invalid inputs visible for correction. */}});
 async function generate(){
