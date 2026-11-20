@@ -1,3 +1,4 @@
+import {addDailyWorksheet} from './daily-rollover.js?v=20261120-1';
 // Workbook values, formulas and styles remain in their original OOXML package.
 const S='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 const R='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
@@ -120,7 +121,7 @@ export async function generateWorkbook(model,source,inputs){
  child(rels,rels.documentElement,P,'Relationship',{Id:rid,Type:R+'/worksheet',Target:relative('xl/workbook.xml',newPath)});
  child(contentTypes,contentTypes.documentElement,C,'Override',{PartName:'/'+newPath,ContentType:'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml'});
  for(const view of all(workbook,'workbookView'))view.setAttribute('activeTab',oldSheets.length);
- let calc=all(workbook,'calcPr')[0];if(!calc){calc=workbook.createElementNS(S,'calcPr');const ext=direct(workbook.documentElement,'extLst');workbook.documentElement.insertBefore(calc,ext??null);}calc.setAttribute('fullCalcOnLoad','1');calc.setAttribute('forceFullCalc','1');
+ let calc=all(workbook,'calcPr')[0];if(!calc){calc=workbook.createElementNS(S,'calcPr');const ext=direct(workbook.documentElement,'extLst');workbook.documentElement.insertBefore(calc,ext??null);}calc.setAttribute('calcMode','auto');calc.setAttribute('fullCalcOnLoad','1');calc.setAttribute('forceFullCalc','1');
  let names=all(workbook,'definedNames')[0];const sourceIndex=oldSheets.findIndex(s=>s.getAttribute('name')===source.name);
  const sourceNames=names?Array.from(names.children).filter(x=>x.getAttribute('localSheetId')===String(sourceIndex)):[];
  for(const old of sourceNames){const clone=old.cloneNode(true);clone.setAttribute('localSheetId',oldSheets.length);clone.textContent=clone.textContent.replaceAll(sheetReference(source.name),sheetReference(dates.name));names.appendChild(clone);}
@@ -140,9 +141,11 @@ export async function generateWorkbook(model,source,inputs){
   }
   zip.file(relPath(newPath),serialize(sourceRels));
  }
+ zip.file(newPath,serialize(doc));
+ const daily=await addDailyWorksheet({model,source,dates,zip,workbook,rels,contentTypes});
  // A preexisting calculation chain describes the old set of formulas only.
  for(const r of all(rels,'Relationship',P))if(r.getAttribute('Type')===R+'/calcChain'){const path=pathFrom('xl/workbook.xml',r.getAttribute('Target'));zip.remove(path);r.remove();for(const item of all(contentTypes,'Override',C))if(item.getAttribute('PartName')==='/'+path)item.remove();}
  zip.file(newPath,serialize(doc));zip.file('xl/workbook.xml',serialize(workbook));zip.file('xl/_rels/workbook.xml.rels',serialize(rels));zip.file('[Content_Types].xml',serialize(contentTypes));
  const buffer=await zip.generateAsync({type:'uint8array',compression:'DEFLATE',compressionOptions:{level:6}});
- return {buffer,...dates,carriedCount:carried.length,summary:{previousAssets:number('E48'),currentAssets:number('F48'),stocks:number('G39'),foreignCurrency:number('H30')}};
+ return {buffer,...dates,daily,carriedCount:carried.length,summary:{previousAssets:number('E48'),currentAssets:number('F48'),stocks:number('G39'),foreignCurrency:number('H30')}};
 }

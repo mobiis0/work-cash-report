@@ -8,12 +8,12 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23112d50'/%3E%3Cpath d='M8 23V9h5l3 7 3-7h5v14h-4v-8l-4 8-4-8v8z' fill='white'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
   <script src="vendor/jszip.min.js" defer></script>
-  <script type="module" src="app.js"></script>
+  <script type="module" src="app.js?v=20261120-1"></script>
 </head>
 <body>
   <header><div class="header-inner"><a class="brand" href="./"><span class="brand-mark">M</span><span>모비스 <strong>주간자금일보</strong></span></a><a class="header-note" href="hub/" style="text-decoration:none">자금일보 홈 ↗</a></div></header>
   <main>
-    <div class="page-heading"><div><p class="eyebrow">WEEKLY CASH REPORT</p><h1>전주 이월, 한 번에.</h1><p class="lead">지난 보고서를 넣고 주가와 환율을 입력하면 새 시트가 추가된 엑셀을 내려받습니다.</p></div><span class="local-label">파일은 이 브라우저에서만 처리</span></div>
+    <div class="page-heading"><div><p class="eyebrow">WEEKLY CASH REPORT</p><h1>전주 이월, 한 번에.</h1><p class="lead">지난 보고서를 넣고 주가와 환율을 입력하면 주간표와 빈 일일표가 함께 추가된 엑셀을 내려받습니다.</p></div><span class="local-label">파일은 이 브라우저에서만 처리</span></div>
     <form id="report-form">
       <section class="panel upload-panel" aria-labelledby="upload-title">
         <div class="section-heading"><span class="step">01</span><h2 id="upload-title">지난 보고서</h2></div>
@@ -29,7 +29,7 @@
         <div class="input-heading fx-heading"><h3>환율</h3><span>외화 1단위당 원화</span></div>
         <div class="fx-grid"><label class="field">유로 · EUR<div class="number-wrap"><input id="eur-rate" type="text" inputmode="decimal" placeholder="예: 1,556.93" required autocomplete="off"><span>원</span></div></label><label class="field">파운드 · GBP<div class="number-wrap"><input id="gbp-rate" type="text" inputmode="decimal" placeholder="예: 1,814.51" required autocomplete="off"><span>원</span></div></label></div>
       </section>
-      <section class="panel result-panel" aria-labelledby="result-title"><div class="section-heading"><span class="step">03</span><h2 id="result-title">새 엑셀 생성</h2></div><p>금주 잔액·평가액은 전주로 이월하고, 입력한 주가·환율로 새 시트의 금주 평가액을 계산합니다. 새 기간의 입출금 칸은 비워둡니다.</p><div id="status" class="status" role="status" aria-live="polite">먼저 지난 보고서를 선택하세요.</div><button id="generate" type="submit" disabled>새 엑셀 생성하고 다운로드</button><a id="download-again" hidden>생성한 파일 다시 다운로드</a></section>
+      <section class="panel result-panel" aria-labelledby="result-title"><div class="section-heading"><span class="step">03</span><h2 id="result-title">새 엑셀 생성</h2></div><p>금주 잔액·평가액은 전주로 이월하고, 입력한 주가·환율로 새 시트의 금주 평가액을 계산합니다. 새 기간의 입출금 칸은 비워둡니다. 일일표는 마지막 가용잔액을 이월하고, 주말 이틀·월~금 날짜와 다음 날 잔액 연결 수식을 준비합니다.</p><div id="status" class="status" role="status" aria-live="polite">먼저 지난 보고서를 선택하세요.</div><button id="generate" type="submit" disabled>새 엑셀 생성하고 다운로드</button><a id="download-again" hidden>생성한 파일 다시 다운로드</a></section>
     </form>
     <footer>원본 시트와 양식은 보존하고, 새 기간 시트만 추가합니다.</footer>
   </main>
